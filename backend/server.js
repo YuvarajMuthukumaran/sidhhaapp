@@ -30,40 +30,6 @@ const otpLimiter = rateLimit({ windowMs: 5 * 60 * 1000, max: 5, message: { error
 app.use('/api', limiter);
 app.use('/api/patient/request-otp', otpLimiter);
 
-// ─── Public: Patient booking search (no auth required) ────────
-// Must be registered BEFORE app.use('/api', require('./routes'))
-// so it takes priority over any auth middleware in routes.js
-async function publicBookingSearch(req, res) {
-  try {
-    const { Booking } = require('./models');
-    const { phone, token } = req.query;
-
-    if (!phone && !token) {
-      return res.status(400).json({ error: 'Please provide a phone number or booking token to search.' });
-    }
-
-    const query = {};
-    if (token) query.token = token.trim().toUpperCase();
-    if (phone) query.phone = phone.trim();
-
-    const bookings = await Booking.find(query)
-      .select('-__v')
-      .sort({ createdAt: -1 })
-      .limit(20);
-
-    res.json(bookings);
-  } catch (e) {
-    console.error('Patient booking search error:', e.message);
-    res.status(500).json({ error: 'Something went wrong. Please try again.' });
-  }
-}
-
-// Cover all common URL patterns the patient frontend might call
-app.get('/api/patient/my-bookings',   publicBookingSearch);
-app.get('/api/patient/bookings',      publicBookingSearch);
-app.get('/api/patient/booking/search',publicBookingSearch);
-app.get('/api/bookings/search',       publicBookingSearch);
-
 // ─── Routes ───────────────────────────────────────────────────
 app.use('/api', require('./routes'));
 

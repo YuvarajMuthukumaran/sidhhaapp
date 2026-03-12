@@ -152,22 +152,17 @@ router.get('/bookings', adminOnly, async (req, res) => {
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
-// Get patient's own bookings — public, no login required
-// Search by phone, email, or booking token
-router.get('/bookings/my', async (req, res) => {
+// Get patient's own bookings
+router.get('/bookings/my', authMiddleware, async (req, res) => {
   try {
-    const { phone, email, token } = req.query;
-
-    if (!phone && !email && !token) {
-      return res.status(400).json({ error: 'Please provide a phone number, email, or booking token to search.' });
-    }
-
+    const { phone, email } = req.query;
     const filter = {};
-    if (token) filter.token = token.trim().toUpperCase();
-    else if (phone) filter.phone = phone.trim();
-    else if (email) filter.email = email.trim().toLowerCase();
+    if (phone) filter.phone = phone;
+    else if (email) filter.email = email;
+    else if (req.user.email) filter.email = req.user.email;
+    else return res.status(400).json({ error: 'Phone or email required' });
 
-    const bookings = await Booking.find(filter).sort({ createdAt: -1 }).limit(20);
+    const bookings = await Booking.find(filter).sort({ createdAt: -1 });
     res.json(bookings);
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
@@ -291,6 +286,45 @@ router.get('/admin/stats', adminOnly, async (req, res) => {
     ]);
 
     res.json({ totalBookings, todayBookings, totalPatients, pendingBookings, onlineBookings, cancelledBookings, topDocs, bySpec });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// ──────────────────────────────────────────────────────────────
+//  ADMIN ACCOUNT MANAGEMENT
+// ──────────────────────────────────────────────────────────────
+
+// GET all admin accounts
+router.get('/admin/accounts', adminOnly, async (req, res) => {
+  try {
+    const admins = await Admin.find({}, { password: 0 }).sort({ createdAt: 1 });
+    res.json(admins);
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// POST create new admin
+router.post('/admin/accounts', adminOnly, async (req, res) => {
+  try {
+    const { name, email, password } = req.body;
+    if (!name || !email || !password) return res.status(400).json({ error: 'Name, email and password are required' });
+    if (password.length < 6) return res.status(400).json({ error: 'Password must be at least 6 characters' });
+    const exists = await Admin.findOne({ email: email.toLowerCase() });
+    if (exists) return res.status(409).json({ error: 'An admin with this email already exists' });
+    const hashed = await bcrypt.hash(password, 10);
+    const admin = await Admin.create({ name, email: email.toLowerCase(), password: hashed });
+    res.status(201).json({ _id: admin._id, name: admin.name, email: admin.email, createdAt: admin.createdAt });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// DELETE admin account
+router.delete('/admin/accounts/:id', adminOnly, async (req, res) => {
+  try {
+    const self = await Admin.findOne({ email: req.user.email });
+    if (self && self._id.toString() === req.params.id) return res.status(400).json({ error: 'You cannot delete your own account' });
+    const count = await Admin.countDocuments();
+    if (count <= 1) return res.status(400).json({ error: 'Cannot delete the last admin account' });
+    const deleted = await Admin.findByIdAndDelete(req.params.id);
+    if (!deleted) return res.status(404).json({ error: 'Admin not found' });
+    res.json({ success: true, message: 'Admin deleted' });
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
