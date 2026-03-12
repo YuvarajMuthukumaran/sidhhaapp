@@ -1,0 +1,837 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sri Sairam Siddha — Patient Portal</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;0,700;1,300;1,400&family=DM+Sans:wght@300;400;500;600&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --jade:#00A896;--jade2:#02C39A;--jade3:#05F5C3;
+  --gold:#D4A847;--gold2:#F0C96A;--gold3:#FFF0B3;
+  --deep:#040D18;--deep2:#071628;--deep3:#0B2040;
+  --rose:#E8445A;--amber:#F59E0B;--emerald:#10B981;
+  --glass:rgba(255,255,255,0.04);--glass2:rgba(255,255,255,0.08);--glass3:rgba(255,255,255,0.13);
+  --border:rgba(212,168,71,0.2);--border2:rgba(0,168,150,0.3);
+  --text:#F0F4FA;--text2:#7A90B0;--text3:#4A6080;
+  --card-bg:rgba(7,22,40,0.8);
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{font-family:'DM Sans',sans-serif;background:var(--deep);color:var(--text);min-height:100vh;overflow-x:hidden;}
+#bgCanvas{position:fixed;inset:0;z-index:0;pointer-events:none;}
+.noise{position:fixed;inset:0;z-index:1;pointer-events:none;opacity:0.03;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");}
+
+/* Cursor */
+.cursor{position:fixed;pointer-events:none;z-index:9999;}
+.cursor-dot{position:absolute;width:8px;height:8px;background:var(--jade3);border-radius:50%;transform:translate(-50%,-50%);transition:transform 0.1s;}
+.cursor-ring{position:absolute;width:38px;height:38px;border:1.5px solid rgba(0,168,150,0.5);border-radius:50%;transform:translate(-50%,-50%);transition:all 0.18s ease;}
+
+/* Load screen */
+#loadScreen{position:fixed;inset:0;z-index:9000;background:var(--deep);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:28px;transition:opacity 0.8s,visibility 0.8s;}
+#loadScreen.hidden{opacity:0;visibility:hidden;}
+.load-ring{width:80px;height:80px;border:1px solid rgba(212,168,71,0.15);border-radius:50%;display:flex;align-items:center;justify-content:center;position:relative;}
+.load-ring::before{content:'';position:absolute;inset:-4px;border-radius:50%;border:2px solid transparent;border-top-color:var(--jade2);border-right-color:var(--gold);animation:spin 1.5s linear infinite;}
+.load-ring::after{content:'';position:absolute;inset:-12px;border-radius:50%;border:1px solid transparent;border-bottom-color:rgba(0,168,150,0.3);animation:spin 2.5s linear infinite reverse;}
+.load-icon{font-size:2rem;}
+.load-brand{font-family:'Cormorant Garamond',serif;font-size:1.1rem;letter-spacing:6px;color:var(--gold2);text-transform:uppercase;}
+.load-bar{width:180px;height:1px;background:rgba(212,168,71,0.15);overflow:hidden;}
+.load-bar::after{content:'';display:block;width:40%;height:100%;background:linear-gradient(90deg,transparent,var(--gold2),transparent);animation:sweep 1.4s ease-in-out infinite;}
+@keyframes sweep{0%{transform:translateX(-200%);}100%{transform:translateX(400%);}}
+@keyframes spin{to{transform:rotate(360deg);}}
+
+/* Header */
+header{position:fixed;top:0;left:0;right:0;z-index:500;padding:0 40px;background:rgba(4,13,24,0.8);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);transition:all 0.3s;}
+header.scrolled{background:rgba(4,13,24,0.97);box-shadow:0 8px 40px rgba(0,0,0,0.5);}
+.header-inner{max-width:1300px;margin:0 auto;height:70px;display:flex;align-items:center;justify-content:space-between;gap:16px;}
+.logo-area{display:flex;align-items:center;gap:14px;cursor:pointer;}
+.logo-gem{width:44px;height:44px;background:conic-gradient(from 0deg,var(--jade),var(--gold),var(--jade2),var(--jade));border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:18px;box-shadow:0 0 24px rgba(0,168,150,0.4);animation:gem-glow 4s ease-in-out infinite;flex-shrink:0;}
+@keyframes gem-glow{0%,100%{box-shadow:0 0 20px rgba(0,168,150,0.4);}50%{box-shadow:0 0 40px rgba(0,168,150,0.7),0 0 80px rgba(0,168,150,0.2);}}
+.logo-text h1{font-family:'Cormorant Garamond',serif;font-size:1.1rem;color:var(--gold2);font-weight:600;letter-spacing:0.5px;}
+.logo-text p{font-family:'Space Mono',monospace;font-size:0.5rem;color:var(--text3);letter-spacing:2.5px;text-transform:uppercase;}
+.nav-btns{display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
+.nav-btn{padding:8px 18px;border:1px solid rgba(255,255,255,0.07);background:transparent;color:var(--text2);border-radius:7px;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:0.82rem;font-weight:500;transition:all 0.25s;}
+.nav-btn:hover,.nav-btn.active{border-color:var(--jade);color:var(--jade2);background:rgba(0,168,150,0.08);}
+.nav-btn.admin-btn{border-color:rgba(212,168,71,0.25);color:var(--gold);}
+.nav-btn.admin-btn:hover{background:rgba(212,168,71,0.08);border-color:var(--gold2);}
+.user-chip{display:flex;align-items:center;gap:8px;background:rgba(0,168,150,0.1);border:1px solid rgba(0,168,150,0.25);border-radius:22px;padding:5px 14px 5px 7px;font-size:0.8rem;color:var(--jade2);}
+.user-av{width:26px;height:26px;background:linear-gradient(135deg,var(--jade),var(--gold));border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.65rem;font-weight:700;color:#fff;}
+.logout-btn{background:none;border:1px solid rgba(232,68,90,0.3);color:var(--rose);border-radius:7px;padding:6px 13px;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:0.78rem;transition:all 0.2s;}
+.logout-btn:hover{background:rgba(232,68,90,0.1);}
+
+/* Hero */
+.hero{position:relative;z-index:5;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:90px 32px 60px;overflow:hidden;}
+.hero-giant{position:absolute;font-family:'Cormorant Garamond',serif;font-size:clamp(90px,20vw,280px);font-weight:700;color:transparent;-webkit-text-stroke:1px rgba(212,168,71,0.035);top:50%;left:50%;transform:translate(-50%,-50%);white-space:nowrap;pointer-events:none;letter-spacing:-6px;user-select:none;}
+.hero-content{position:relative;z-index:2;max-width:720px;}
+.hero-pill{display:inline-flex;align-items:center;gap:10px;padding:6px 20px;border:1px solid var(--border);border-radius:100px;background:rgba(212,168,71,0.05);color:var(--gold2);font-family:'Space Mono',monospace;font-size:0.6rem;letter-spacing:3px;text-transform:uppercase;margin-bottom:30px;animation:fadeUp 0.7s ease both;}
+.hero-pill-dot{width:5px;height:5px;background:var(--gold2);border-radius:50%;animation:blink 2s infinite;}
+@keyframes blink{0%,100%{opacity:1;}50%{opacity:0.2;}}
+.hero h2{font-family:'Cormorant Garamond',serif;font-size:clamp(3rem,8vw,6.5rem);font-weight:300;line-height:1.0;letter-spacing:-2px;margin-bottom:22px;animation:fadeUp 0.7s 0.1s ease both;}
+.hero h2 em{font-style:italic;background:linear-gradient(135deg,var(--gold2) 0%,var(--jade3) 40%,var(--gold3) 80%);background-size:200%;-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;animation:shimmer 5s linear infinite;}
+@keyframes shimmer{to{background-position:-200% 0;}}
+.hero p{color:var(--text2);font-size:1.05rem;line-height:1.75;margin:0 auto 44px;animation:fadeUp 0.7s 0.2s ease both;}
+.hero-cta{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;animation:fadeUp 0.7s 0.3s ease both;}
+.btn-hero{padding:14px 36px;border-radius:9px;font-family:'DM Sans',sans-serif;font-size:0.92rem;font-weight:600;cursor:pointer;border:none;transition:all 0.3s;display:inline-flex;align-items:center;gap:10px;position:relative;overflow:hidden;}
+.btn-hero-primary{background:linear-gradient(135deg,var(--jade),var(--jade2));color:#fff;box-shadow:0 4px 24px rgba(0,168,150,0.35);}
+.btn-hero-primary:hover{transform:translateY(-2px);box-shadow:0 8px 36px rgba(0,168,150,0.55);}
+.btn-hero-outline{background:transparent;border:1px solid var(--border);color:var(--text2);}
+.btn-hero-outline:hover{border-color:var(--gold);color:var(--gold2);}
+.hero-stats{display:flex;border:1px solid var(--border);border-radius:14px;background:rgba(7,22,40,0.7);backdrop-filter:blur(12px);overflow:hidden;margin-top:52px;animation:fadeUp 0.7s 0.4s ease both;}
+.stat-item{flex:1;padding:20px 26px;text-align:center;border-right:1px solid var(--border);}
+.stat-item:last-child{border-right:none;}
+.stat-num{font-family:'Cormorant Garamond',serif;font-size:2.1rem;font-weight:600;color:var(--jade2);line-height:1;}
+.stat-label{font-family:'Space Mono',monospace;font-size:0.52rem;color:var(--text3);letter-spacing:2px;text-transform:uppercase;margin-top:5px;}
+.scroll-hint{position:absolute;bottom:36px;left:50%;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:8px;color:var(--text3);font-family:'Space Mono',monospace;font-size:0.52rem;letter-spacing:3px;animation:fadeUp 0.7s 1.2s ease both;}
+.scroll-mouse{width:20px;height:32px;border:1.5px solid rgba(120,140,160,0.3);border-radius:10px;display:flex;justify-content:center;padding-top:5px;}
+.scroll-dot{width:3px;height:6px;background:var(--jade2);border-radius:2px;animation:scrolldot 2s ease-in-out infinite;}
+@keyframes scrolldot{0%,100%{transform:translateY(0);opacity:1;}60%{transform:translateY(12px);opacity:0;}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(22px);}to{opacity:1;transform:translateY(0);}}
+
+/* Steps Bar */
+.steps-bar{position:relative;z-index:5;max-width:680px;margin:0 auto;padding:28px 32px 0;display:none;}
+.steps-bar.show{display:block;}
+.steps-track{display:flex;align-items:center;}
+.step-item{flex:1;display:flex;flex-direction:column;align-items:center;position:relative;}
+.step-item:not(:last-child)::after{content:'';position:absolute;top:18px;left:50%;width:100%;height:1px;background:var(--border);transition:background 0.5s;}
+.step-item.done:not(:last-child)::after,.step-item.active:not(:last-child)::after{background:var(--jade);}
+.step-circle{width:36px;height:36px;border-radius:50%;background:var(--deep2);border:1.5px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:0.85rem;z-index:1;transition:all 0.4s;}
+.step-item.active .step-circle{background:linear-gradient(135deg,var(--jade),var(--jade2));border-color:var(--jade2);box-shadow:0 0 0 4px rgba(0,168,150,0.15),0 0 20px rgba(0,168,150,0.4);}
+.step-item.done .step-circle{background:linear-gradient(135deg,var(--jade),var(--jade2));border-color:var(--jade);}
+.step-label{font-family:'Space Mono',monospace;font-size:0.53rem;color:var(--text3);margin-top:7px;letter-spacing:1px;text-transform:uppercase;}
+.step-item.active .step-label{color:var(--jade2);}
+.step-item.done .step-label{color:var(--jade);}
+
+/* Main */
+.main{position:relative;z-index:5;max-width:1100px;margin:0 auto;padding:28px 32px 80px;}
+.section{display:none;}
+.section.active{display:block;animation:secIn 0.5s cubic-bezier(0.16,1,0.3,1) both;}
+@keyframes secIn{from{opacity:0;transform:translateY(20px);}to{opacity:1;transform:translateY(0);}}
+.section-title{font-family:'Cormorant Garamond',serif;font-size:1.75rem;font-weight:400;color:var(--text);margin-bottom:4px;letter-spacing:-0.3px;}
+.section-sub{color:var(--text2);font-size:0.875rem;margin-bottom:26px;line-height:1.6;}
+
+/* Doctor Grid */
+.doctor-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(285px,1fr));gap:16px;}
+.doc-card{background:var(--card-bg);border:1px solid var(--border);border-radius:16px;padding:24px;cursor:pointer;transition:all 0.35s cubic-bezier(0.16,1,0.3,1);position:relative;overflow:hidden;backdrop-filter:blur(12px);}
+.doc-card:nth-child(1){animation:cardIn 0.5s 0.05s ease both;}
+.doc-card:nth-child(2){animation:cardIn 0.5s 0.1s ease both;}
+.doc-card:nth-child(3){animation:cardIn 0.5s 0.15s ease both;}
+.doc-card:nth-child(4){animation:cardIn 0.5s 0.2s ease both;}
+.doc-card:nth-child(5){animation:cardIn 0.5s 0.25s ease both;}
+.doc-card:nth-child(6){animation:cardIn 0.5s 0.3s ease both;}
+.doc-card:nth-child(n+7){animation:cardIn 0.5s 0.35s ease both;}
+@keyframes cardIn{from{opacity:0;transform:translateY(24px) scale(0.97);}to{opacity:1;transform:translateY(0) scale(1);}}
+.doc-card::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(0,168,150,0.07),rgba(212,168,71,0.02));opacity:0;transition:opacity 0.3s;}
+.doc-card:hover{transform:translateY(-6px);border-color:var(--jade);box-shadow:0 24px 60px rgba(0,0,0,0.4),0 0 0 1px rgba(0,168,150,0.15),inset 0 1px 0 rgba(255,255,255,0.05);}
+.doc-card:hover::before{opacity:1;}
+.doc-card.selected{border-color:var(--jade2);box-shadow:0 0 0 2px var(--jade2),0 16px 50px rgba(0,168,150,0.2);background:rgba(0,168,150,0.05);}
+.doc-card.selected::before{opacity:1;}
+.doc-card.unavailable{opacity:0.3;pointer-events:none;filter:grayscale(0.8);}
+.doc-sel-badge{position:absolute;top:14px;right:14px;background:var(--jade2);color:#fff;font-family:'Space Mono',monospace;font-size:0.53rem;padding:3px 10px;border-radius:100px;letter-spacing:1px;opacity:0;transform:translateY(-6px) scale(0.85);transition:all 0.25s;}
+.doc-card.selected .doc-sel-badge{opacity:1;transform:translateY(0) scale(1);}
+.doc-avatar{width:56px;height:56px;border-radius:13px;background:linear-gradient(135deg,var(--jade),var(--gold));display:flex;align-items:center;justify-content:center;font-family:'Cormorant Garamond',serif;font-size:1.05rem;font-weight:700;color:#fff;flex-shrink:0;box-shadow:0 4px 14px rgba(0,168,150,0.3);overflow:hidden;}
+.doc-avatar img{width:100%;height:100%;object-fit:cover;}
+.doc-header{display:flex;align-items:center;gap:13px;margin-bottom:13px;}
+.doc-info h3{font-size:0.93rem;font-weight:600;line-height:1.3;margin-bottom:2px;}
+.doc-info .reg{font-family:'Space Mono',monospace;font-size:0.56rem;color:var(--gold);letter-spacing:0.8px;}
+.doc-spec{display:inline-block;background:rgba(0,168,150,0.1);color:var(--jade2);font-size:0.7rem;font-weight:500;padding:3px 11px;border-radius:100px;margin:0 0 10px;border:1px solid rgba(0,168,150,0.2);}
+.doc-qual{font-size:0.74rem;color:var(--text2);line-height:1.6;margin-bottom:11px;}
+.doc-meta{display:flex;gap:6px;flex-wrap:wrap;}
+.doc-badge{font-size:0.64rem;font-weight:500;padding:3px 10px;border-radius:100px;border:1px solid;}
+.badge-online{border-color:rgba(16,185,129,0.3);color:var(--emerald);background:rgba(16,185,129,0.08);}
+.badge-free{border-color:rgba(212,168,71,0.3);color:var(--gold2);background:rgba(212,168,71,0.07);}
+.badge-exp{border-color:rgba(255,255,255,0.1);color:var(--text2);background:var(--glass);}
+.badge-offline{border-color:rgba(232,68,90,0.3);color:var(--rose);background:rgba(232,68,90,0.06);}
+.doc-schedule{font-family:'Space Mono',monospace;font-size:0.58rem;color:var(--text3);margin-top:7px;}
+
+/* Date grid */
+.date-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:8px;margin-bottom:22px;}
+.date-cell{background:var(--glass);border:1px solid var(--border);border-radius:11px;padding:10px 5px;text-align:center;cursor:pointer;transition:all 0.25s;position:relative;overflow:hidden;}
+.date-cell:hover:not(.past){border-color:var(--jade);background:rgba(0,168,150,0.08);}
+.date-cell.selected{background:linear-gradient(135deg,var(--jade),var(--jade2));border-color:var(--jade2);box-shadow:0 4px 20px rgba(0,168,150,0.4);}
+.date-cell.past{opacity:0.2;pointer-events:none;}
+.date-cell .day-name{font-family:'Space Mono',monospace;font-size:0.52rem;color:var(--text3);letter-spacing:1px;text-transform:uppercase;}
+.date-cell.selected .day-name{color:rgba(255,255,255,0.7);}
+.date-cell .day-num{font-family:'Cormorant Garamond',serif;font-size:1.2rem;font-weight:600;margin-top:2px;}
+.date-cell.selected .day-num{color:#fff;}
+
+/* Slots */
+.time-panel{background:var(--card-bg);border:1px solid var(--border);border-radius:16px;padding:22px;backdrop-filter:blur(12px);}
+.time-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;flex-wrap:wrap;gap:8px;}
+.wait-estimate{background:rgba(0,168,150,0.09);border:1px solid rgba(0,168,150,0.2);border-radius:7px;padding:5px 13px;font-family:'Space Mono',monospace;font-size:0.68rem;color:var(--jade2);letter-spacing:0.3px;}
+.slots-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:8px;}
+.slot{padding:10px 8px;border-radius:10px;text-align:center;cursor:pointer;border:1px solid var(--border);background:var(--glass);transition:all 0.2s;position:relative;overflow:hidden;}
+.slot:hover:not(.booked){border-color:var(--jade);background:rgba(0,168,150,0.1);transform:translateY(-2px);}
+.slot.selected{background:linear-gradient(135deg,var(--jade),var(--jade2));border-color:var(--jade2);box-shadow:0 4px 16px rgba(0,168,150,0.4);}
+.slot.booked{opacity:0.25;pointer-events:none;}
+.slot .time-txt{font-weight:600;font-size:0.82rem;}
+.slot .queue-txt{font-size:0.6rem;color:var(--text2);margin-top:2px;}
+.slot.selected .queue-txt,.slot.selected .time-txt{color:#fff;}
+.slot-loading{color:var(--text2);padding:24px;text-align:center;font-size:0.85rem;grid-column:1/-1;}
+
+/* Form */
+.form-panel{background:var(--card-bg);border:1px solid var(--border);border-radius:16px;padding:28px;backdrop-filter:blur(12px);}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;}
+.form-group{display:flex;flex-direction:column;gap:6px;}
+.form-group.full{grid-column:1/-1;}
+.form-group label{font-family:'Space Mono',monospace;font-size:0.6rem;color:var(--text3);letter-spacing:2px;text-transform:uppercase;}
+.form-group input,.form-group select,.form-group textarea{background:rgba(0,0,0,0.4);border:1px solid rgba(255,255,255,0.07);border-radius:9px;padding:11px 14px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:0.88rem;outline:none;transition:all 0.25s;}
+.form-group input:focus,.form-group select:focus,.form-group textarea:focus{border-color:var(--jade);background:rgba(0,168,150,0.04);box-shadow:0 0 0 3px rgba(0,168,150,0.1);}
+.form-group select option{background:var(--deep2);}
+.form-group textarea{resize:vertical;min-height:88px;line-height:1.6;}
+.consult-toggle{display:flex;gap:12px;margin-bottom:22px;}
+.cons-opt{flex:1;padding:15px;border:1.5px solid var(--border);border-radius:12px;text-align:center;cursor:pointer;transition:all 0.3s;background:var(--glass);}
+.cons-opt:hover{border-color:var(--jade);}
+.cons-opt.selected{border-color:var(--jade2);background:rgba(0,168,150,0.09);box-shadow:0 0 0 3px rgba(0,168,150,0.08);}
+.cons-opt .cons-icon{font-size:1.5rem;}
+.cons-opt .cons-label{font-size:0.85rem;font-weight:600;margin-top:4px;}
+.cons-opt .cons-sub{font-size:0.68rem;color:var(--text2);margin-top:2px;}
+.notif-checks{display:flex;gap:16px;flex-wrap:wrap;}
+.chk-label{display:flex;align-items:center;gap:8px;cursor:pointer;font-size:0.85rem;color:var(--text2);}
+.chk-label input{accent-color:var(--jade);}
+.online-banner{background:rgba(0,168,150,0.07);border:1px solid rgba(0,168,150,0.2);border-radius:10px;padding:13px 16px;margin-bottom:18px;font-size:0.83rem;color:var(--jade2);display:none;line-height:1.5;}
+
+/* Buttons */
+.btn-row{display:flex;gap:10px;justify-content:flex-end;margin-top:22px;}
+.btn{padding:10px 26px;border-radius:9px;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:0.85rem;font-weight:600;border:none;transition:all 0.25s;display:inline-flex;align-items:center;gap:8px;}
+.btn:disabled{opacity:0.3;pointer-events:none;}
+.btn-primary{background:linear-gradient(135deg,var(--jade),var(--jade2));color:#fff;box-shadow:0 4px 16px rgba(0,168,150,0.28);}
+.btn-primary:hover:not(:disabled){transform:translateY(-1px);box-shadow:0 6px 24px rgba(0,168,150,0.45);}
+.btn-gold{background:linear-gradient(135deg,var(--gold),#B88820);color:#fff;box-shadow:0 4px 16px rgba(212,168,71,0.28);}
+.btn-gold:hover{transform:translateY(-1px);box-shadow:0 6px 24px rgba(212,168,71,0.45);}
+.btn-outline{background:transparent;border:1px solid rgba(255,255,255,0.1);color:var(--text2);}
+.btn-outline:hover{border-color:var(--jade);color:var(--jade2);}
+.spinner{width:15px;height:15px;border:2px solid rgba(255,255,255,0.2);border-top-color:#fff;border-radius:50%;animation:spin 0.7s linear infinite;}
+
+/* Confirm */
+.confirm-card{background:linear-gradient(135deg,rgba(0,168,150,0.07),rgba(212,168,71,0.03));border:1px solid rgba(0,168,150,0.22);border-radius:20px;padding:40px;margin-bottom:22px;text-align:center;position:relative;overflow:hidden;}
+.confirm-card::before{content:'';position:absolute;top:-40%;left:-40%;width:180%;height:180%;background:conic-gradient(from 0deg,transparent 340deg,rgba(0,168,150,0.04) 360deg);animation:rotbg 10s linear infinite;}
+@keyframes rotbg{to{transform:rotate(360deg);}}
+.confirm-label{font-family:'Space Mono',monospace;font-size:0.58rem;color:var(--text3);letter-spacing:3px;text-transform:uppercase;position:relative;z-index:1;}
+.token-display{font-family:'Cormorant Garamond',serif;font-size:5.5rem;font-weight:600;background:linear-gradient(135deg,var(--gold2),var(--gold3));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;letter-spacing:8px;margin:12px 0 8px;position:relative;z-index:1;animation:tokenglow 2s ease-in-out infinite alternate;}
+@keyframes tokenglow{from{filter:drop-shadow(0 0 12px rgba(212,168,71,0.3));}to{filter:drop-shadow(0 0 30px rgba(212,168,71,0.6));}}
+.token-sub{color:var(--text2);font-size:0.88rem;position:relative;z-index:1;}
+.confirm-email-note{margin-top:13px;font-size:0.78rem;color:var(--jade2);position:relative;z-index:1;}
+.summary-grid{border-radius:12px;overflow:hidden;border:1px solid var(--border);}
+.summary-row{display:flex;justify-content:space-between;padding:13px 18px;background:rgba(7,22,40,0.5);font-size:0.85rem;border-bottom:1px solid rgba(255,255,255,0.04);}
+.summary-row:last-child{border-bottom:none;}
+.summary-row span:first-child{color:var(--text2);}
+.summary-row span:last-child{font-weight:600;}
+
+/* My Bookings */
+.booking-item{background:var(--card-bg);border:1px solid var(--border);border-radius:14px;padding:19px;margin-bottom:12px;display:flex;gap:16px;align-items:flex-start;flex-wrap:wrap;transition:all 0.25s;backdrop-filter:blur(12px);animation:cardIn 0.4s ease both;}
+.booking-item:hover{border-color:rgba(0,168,150,0.2);transform:translateX(3px);}
+.booking-status{display:inline-block;padding:3px 12px;border-radius:100px;font-family:'Space Mono',monospace;font-size:0.58rem;font-weight:700;letter-spacing:1.5px;margin-bottom:5px;}
+.status-confirmed{background:rgba(0,168,150,0.1);color:var(--jade2);border:1px solid rgba(0,168,150,0.25);}
+.status-pending{background:rgba(245,158,11,0.1);color:var(--amber);border:1px solid rgba(245,158,11,0.25);}
+.status-cancelled{background:rgba(232,68,90,0.1);color:var(--rose);border:1px solid rgba(232,68,90,0.25);}
+.status-completed{background:rgba(16,185,129,0.1);color:var(--emerald);border:1px solid rgba(16,185,129,0.25);}
+.booking-info{flex:1;}
+.booking-info h4{font-size:0.95rem;font-weight:600;margin-bottom:4px;}
+.booking-info p{font-size:0.77rem;color:var(--text2);line-height:1.7;}
+.cancel-btn{padding:6px 15px;border-radius:8px;border:1px solid rgba(232,68,90,0.3);color:var(--rose);background:rgba(232,68,90,0.06);cursor:pointer;font-family:'DM Sans',sans-serif;font-size:0.78rem;font-weight:500;transition:all 0.2s;white-space:nowrap;}
+.cancel-btn:hover{background:rgba(232,68,90,0.15);}
+
+/* Search */
+.search-row{display:flex;gap:10px;margin-bottom:22px;flex-wrap:wrap;}
+.search-input{flex:1;background:var(--card-bg);border:1px solid var(--border);border-radius:9px;padding:11px 15px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:0.88rem;outline:none;min-width:200px;backdrop-filter:blur(12px);transition:all 0.25s;}
+.search-input:focus{border-color:var(--jade);box-shadow:0 0 0 3px rgba(0,168,150,0.1);}
+
+/* Notifs */
+.notif-panel{position:fixed;top:86px;right:20px;z-index:1000;display:flex;flex-direction:column;gap:8px;max-width:370px;}
+.notif-card{background:rgba(7,22,40,0.98);border:1px solid var(--border);border-radius:13px;padding:14px 16px;display:flex;align-items:flex-start;gap:12px;animation:slideIn 0.4s cubic-bezier(0.16,1,0.3,1);box-shadow:0 16px 48px rgba(0,0,0,0.5);backdrop-filter:blur(20px);}
+.notif-card.success{border-color:rgba(16,185,129,0.35);}
+.notif-card.info{border-color:rgba(0,168,150,0.35);}
+.notif-card.alert{border-color:rgba(232,68,90,0.35);}
+.notif-icon{font-size:1.1rem;flex-shrink:0;margin-top:1px;}
+.notif-body h4{font-size:0.82rem;font-weight:600;margin-bottom:2px;}
+.notif-body p{font-size:0.74rem;color:var(--text2);line-height:1.5;}
+.notif-close{margin-left:auto;background:none;border:none;color:var(--text3);cursor:pointer;font-size:0.83rem;flex-shrink:0;}
+@keyframes slideIn{from{opacity:0;transform:translateX(16px);}to{opacity:1;transform:translateX(0);}}
+
+/* Modal */
+.modal-overlay{position:fixed;inset:0;z-index:800;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.8);backdrop-filter:blur(10px);}
+.modal-box{background:linear-gradient(160deg,rgba(7,22,40,0.99),rgba(4,13,24,0.99));border:1px solid var(--border);border-radius:22px;padding:42px 38px;max-width:410px;width:93%;text-align:center;box-shadow:0 40px 100px rgba(0,0,0,0.7),0 0 0 1px rgba(255,255,255,0.03);animation:modalIn 0.4s cubic-bezier(0.16,1,0.3,1);}
+@keyframes modalIn{from{opacity:0;transform:scale(0.9) translateY(16px);}to{opacity:1;transform:scale(1) translateY(0);}}
+.modal-box h3{font-family:'Cormorant Garamond',serif;color:var(--gold2);font-size:1.6rem;font-weight:400;margin-bottom:8px;}
+.modal-box>p,.modal-box #loginStep1>p,.modal-box #loginStep2>p{color:var(--text2);font-size:0.875rem;margin-bottom:22px;line-height:1.6;}
+.otp-inputs{display:flex;gap:10px;justify-content:center;margin-bottom:22px;}
+.otp-input{width:48px;height:56px;background:rgba(0,0,0,0.5);border:1.5px solid rgba(255,255,255,0.07);border-radius:11px;color:var(--text);font-family:'Cormorant Garamond',serif;font-size:1.6rem;font-weight:600;text-align:center;outline:none;transition:all 0.25s;}
+.otp-input:focus{border-color:var(--jade);background:rgba(0,168,150,0.07);box-shadow:0 0 0 3px rgba(0,168,150,0.12);}
+.resend-link{background:none;border:none;color:var(--jade2);cursor:pointer;font-family:'DM Sans',sans-serif;font-size:0.82rem;text-decoration:underline;text-decoration-color:rgba(0,212,188,0.35);}
+.login-form{text-align:left;}
+.login-form .form-group{margin-bottom:13px;}
+.login-form .form-group label{display:block;font-family:'Space Mono',monospace;font-size:0.58rem;color:var(--text3);letter-spacing:2px;text-transform:uppercase;margin-bottom:6px;}
+.login-form .form-group input{width:100%;background:rgba(0,0,0,0.4);border:1px solid rgba(255,255,255,0.07);border-radius:9px;padding:11px 14px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:0.88rem;outline:none;transition:all 0.25s;}
+.login-form .form-group input:focus{border-color:var(--jade);box-shadow:0 0 0 3px rgba(0,168,150,0.1);}
+
+/* Loading overlay */
+.loading-overlay{position:fixed;inset:0;background:rgba(4,13,24,0.9);z-index:600;display:none;flex-direction:column;align-items:center;justify-content:center;gap:18px;backdrop-filter:blur(4px);}
+.loading-overlay.show{display:flex;}
+.loading-emblem{font-size:2.8rem;animation:pulse-s 2s ease-in-out infinite;}
+@keyframes pulse-s{0%,100%{transform:scale(1);}50%{transform:scale(1.12);}}
+.loading-text{font-family:'Space Mono',monospace;color:var(--gold2);font-size:0.72rem;letter-spacing:4px;text-transform:uppercase;}
+
+/* Ripple */
+.ripple{position:absolute;border-radius:50%;background:rgba(0,168,150,0.2);transform:scale(0);animation:rippleOut 0.6s ease-out forwards;pointer-events:none;}
+@keyframes rippleOut{to{transform:scale(4);opacity:0;}}
+
+/* Footer */
+footer{position:relative;z-index:5;border-top:1px solid var(--border);padding:26px 40px;text-align:center;color:var(--text3);font-family:'Space Mono',monospace;font-size:0.58rem;letter-spacing:1.5px;}
+footer span{color:var(--jade2);}
+
+@media(max-width:768px){
+  header{padding:0 18px;}
+  .hero{padding:85px 18px 60px;}
+  .hero h2{font-size:2.6rem;}
+  .main{padding:18px 16px 60px;}
+  .form-grid{grid-template-columns:1fr;}
+  .form-group.full{grid-column:1;}
+  .date-grid{grid-template-columns:repeat(4,1fr);}
+  .hero-stats{flex-direction:column;max-width:260px;}
+  .stat-item{border-right:none;border-bottom:1px solid var(--border);}
+  .stat-item:last-child{border-bottom:none;}
+  .steps-bar{padding:20px 16px 0;}
+  .modal-box{padding:30px 22px;}
+  .nav-btns{gap:5px;}
+  .nav-btn{padding:7px 12px;font-size:0.78rem;}
+}
+</style>
+</head>
+<body>
+
+<canvas id="bgCanvas"></canvas>
+<div class="noise"></div>
+<div class="cursor" id="cursor"><div class="cursor-dot"></div><div class="cursor-ring"></div></div>
+
+<!-- Load Screen -->
+<div id="loadScreen">
+  <div class="load-ring"><div class="load-icon">🌿</div></div>
+  <div class="load-brand">Sri Sairam Siddha</div>
+  <div class="load-bar"></div>
+</div>
+
+<!-- Loading Overlay -->
+<div class="loading-overlay" id="loadingOverlay">
+  <div class="loading-emblem">🌿</div>
+  <div class="loading-text">Loading</div>
+</div>
+
+<!-- Login Modal -->
+<div class="modal-overlay" id="loginModal" style="display:none;">
+  <div class="modal-box">
+    <div style="font-size:2.6rem;margin-bottom:14px;">🔐</div>
+    <div id="loginStep1">
+      <h3>Patient Login</h3>
+      <p>Enter your details to receive a one-time passcode on your email.</p>
+      <div class="login-form">
+        <div class="form-group"><label>Full Name</label><input id="loginName" placeholder="Your full name" type="text" autocomplete="name"></div>
+        <div class="form-group"><label>Email Address</label><input id="loginEmail" placeholder="your@email.com" type="email" autocomplete="email"></div>
+        <div class="form-group"><label>Phone Number</label><input id="loginPhone" placeholder="+91 9XXXXXXXXX" type="tel" autocomplete="tel"></div>
+      </div>
+      <button class="btn btn-primary" style="width:100%;justify-content:center;margin-top:6px;" onclick="requestOTP()" id="sendOtpBtn"><span>Send OTP to Email</span></button>
+      <p style="margin-top:14px;font-size:0.73rem;color:var(--text3);">No passwords. OTP expires in 10 minutes.</p>
+    </div>
+    <div id="loginStep2" style="display:none;">
+      <h3>Verify OTP</h3>
+      <p id="otpSentMsg">Enter the 6-digit OTP sent to your email.</p>
+      <div class="otp-inputs">
+        <input class="otp-input" maxlength="1" type="text" inputmode="numeric" oninput="otpNext(this,0)">
+        <input class="otp-input" maxlength="1" type="text" inputmode="numeric" oninput="otpNext(this,1)">
+        <input class="otp-input" maxlength="1" type="text" inputmode="numeric" oninput="otpNext(this,2)">
+        <input class="otp-input" maxlength="1" type="text" inputmode="numeric" oninput="otpNext(this,3)">
+        <input class="otp-input" maxlength="1" type="text" inputmode="numeric" oninput="otpNext(this,4)">
+        <input class="otp-input" maxlength="1" type="text" inputmode="numeric" oninput="otpNext(this,5)">
+      </div>
+      <button class="btn btn-primary" style="width:100%;justify-content:center;" onclick="verifyOTP()" id="verifyBtn"><span>Verify & Login</span></button>
+      <div style="margin-top:12px;display:flex;gap:12px;justify-content:center;">
+        <button class="resend-link" onclick="showLoginStep1()">← Change email</button>
+        <button class="resend-link" onclick="requestOTP()">Resend OTP</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Notifications -->
+<div class="notif-panel" id="notifPanel"></div>
+
+<!-- HEADER -->
+<header id="mainHeader">
+  <div class="header-inner">
+    <div class="logo-area" onclick="window.scrollTo({top:0,behavior:'smooth'})">
+      <div class="logo-gem">🌿</div>
+      <div class="logo-text">
+        <h1>Sri Sairam Siddha</h1>
+        <p>Traditional Healing · Modern Care</p>
+      </div>
+    </div>
+    <div class="nav-btns">
+      <button class="nav-btn active" onclick="showSection('book')">📅 Book</button>
+      <button class="nav-btn" onclick="showSection('mybookings')">📋 My Bookings</button>
+      <button class="nav-btn admin-btn" onclick="window.location.href='/admin'">⚙️ Admin</button>
+      <div id="authArea">
+        <button class="nav-btn" onclick="showLogin()">🔑 Login</button>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- HERO -->
+<div class="hero" id="heroSection">
+  <div class="hero-giant" aria-hidden="true">SIDDHA</div>
+  <div class="hero-content">
+    <div class="hero-pill"><span class="hero-pill-dot"></span>Traditional Siddha Medicine · Est. 1985</div>
+    <h2>Heal with<br><em>Ancient Wisdom</em></h2>
+    <p>Book appointments with our expert Siddha physicians. Experience the power of traditional healing — free consultations for every patient.</p>
+    <div class="hero-cta">
+      <button class="btn-hero btn-hero-primary" onclick="scrollToBooking()"><span>Book Appointment</span><span>→</span></button>
+      <button class="btn-hero btn-hero-outline" onclick="showSection('mybookings')">View My Bookings</button>
+    </div>
+    <div class="hero-stats">
+      <div class="stat-item"><div class="stat-num" id="statToday">-</div><div class="stat-label">Today's Patients</div></div>
+      <div class="stat-item"><div class="stat-num" id="statDoctors">-</div><div class="stat-label">Doctors</div></div>
+      <div class="stat-item"><div class="stat-num">FREE</div><div class="stat-label">Consultation</div></div>
+    </div>
+  </div>
+  <div class="scroll-hint"><div class="scroll-mouse"><div class="scroll-dot"></div></div><span>SCROLL</span></div>
+</div>
+
+<!-- Steps Bar -->
+<div class="steps-bar show" id="stepsBar">
+  <div class="steps-track">
+    <div class="step-item active" id="stepUI1"><div class="step-circle">🩺</div><div class="step-label">Doctor</div></div>
+    <div class="step-item" id="stepUI2"><div class="step-circle">📅</div><div class="step-label">Date & Slot</div></div>
+    <div class="step-item" id="stepUI3"><div class="step-circle">📝</div><div class="step-label">Your Info</div></div>
+    <div class="step-item" id="stepUI4"><div class="step-circle">✅</div><div class="step-label">Confirmed</div></div>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+
+  <div class="section active" id="sec-book">
+
+    <!-- Step 1 -->
+    <div id="bookStep1">
+      <div class="section-title">Choose Your Doctor</div>
+      <div class="section-sub">Select a Siddha specialist for your consultation</div>
+      <div class="doctor-grid" id="doctorGrid"><div style="color:var(--text2);padding:40px;text-align:center;grid-column:1/-1;">Loading doctors...</div></div>
+      <div class="btn-row"><button class="btn btn-primary" id="btnStep1Next" disabled onclick="goStep(2)" style="display:none;">Next →</button></div>
+    </div>
+
+    <!-- Step 2 -->
+    <div id="bookStep2" style="display:none;">
+      <div class="section-title">Select Date & Time</div>
+      <div class="section-sub">Choose an available appointment slot</div>
+      <div class="date-grid" id="dateGrid"></div>
+      <div class="time-panel">
+        <div class="time-header">
+          <div class="section-title" style="font-size:1.1rem;margin:0;">Available Slots</div>
+          <div class="wait-estimate" id="waitEst">Select a date</div>
+        </div>
+        <div class="slots-grid" id="slotsGrid"><div class="slot-loading">Select a date above to see available slots</div></div>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-outline" onclick="goStep(1)">← Back</button>
+        <button class="btn btn-primary" id="btnStep2Next" disabled onclick="goStep(3)">Next — Your Details →</button>
+      </div>
+    </div>
+
+    <!-- Step 3 -->
+    <div id="bookStep3" style="display:none;">
+      <div class="section-title">Your Details</div>
+      <div class="section-sub">Complete your appointment information</div>
+      <div class="online-banner" id="onlineBanner">💻 Online consultation selected. You'll receive a meeting link after booking confirmation.</div>
+      <div class="consult-toggle">
+        <div class="cons-opt selected" id="consInperson" onclick="selectConsType('inperson')"><div class="cons-icon">🏥</div><div class="cons-label">In-Person</div><div class="cons-sub">Visit the hospital</div></div>
+        <div class="cons-opt" id="consOnline" onclick="selectConsType('online')"><div class="cons-icon">💻</div><div class="cons-label">Online</div><div class="cons-sub">Video consultation</div></div>
+      </div>
+      <div class="form-panel">
+        <div class="form-grid">
+          <div class="form-group"><label>Full Name *</label><input id="ptName" placeholder="Patient's full name" type="text"></div>
+          <div class="form-group"><label>Age *</label><input id="ptAge" placeholder="Age in years" type="number" min="1" max="120"></div>
+          <div class="form-group"><label>Gender *</label><select id="ptGender"><option value="">Select gender</option><option>Male</option><option>Female</option><option>Other</option></select></div>
+          <div class="form-group"><label>Phone *</label><input id="ptPhone" placeholder="+91 9XXXXXXXXX" type="tel"></div>
+          <div class="form-group"><label>Email</label><input id="ptEmail" placeholder="your@email.com (for confirmation)" type="email"></div>
+          <div class="form-group full"><label>Chief Complaint *</label><input id="ptComplaint" placeholder="Brief description of your main concern" type="text"></div>
+          <div class="form-group full"><label>Medical History</label><textarea id="ptHistory" placeholder="Any previous illnesses, current medications, allergies..."></textarea></div>
+          <div class="form-group full"><label>Notification Preferences</label><div class="notif-checks"><label class="chk-label"><input type="checkbox" id="notifEmail" checked> 📧 Email reminders</label></div></div>
+        </div>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-outline" onclick="goStep(2)">← Back</button>
+        <button class="btn btn-gold" onclick="submitBooking()" id="btnConfirm"><span>Confirm Appointment ✓</span></button>
+      </div>
+    </div>
+
+    <!-- Step 4 -->
+    <div id="bookStep4" style="display:none;">
+      <div class="section-title" style="text-align:center;">🎉 Booking Confirmed!</div>
+      <div class="section-sub" style="text-align:center;">Your appointment has been successfully booked</div>
+      <div class="confirm-card">
+        <div class="confirm-label">Your Token Number</div>
+        <div class="token-display" id="tokenNumber">—</div>
+        <div class="token-sub" id="tokenTime">—</div>
+        <div class="confirm-email-note">📧 Confirmation email sent to your inbox</div>
+      </div>
+      <div class="summary-grid" id="summaryContent"></div>
+      <div class="btn-row" style="justify-content:center;margin-top:26px;">
+        <button class="btn btn-outline" onclick="resetBooking()">Book Another</button>
+        <button class="btn btn-primary" onclick="showSection('mybookings')">View My Bookings</button>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- MY BOOKINGS -->
+  <div class="section" id="sec-mybookings">
+    <div class="section-title">My Appointments</div>
+    <div class="section-sub">Find and manage your bookings</div>
+    <div class="search-row">
+      <input class="search-input" id="searchPhone" placeholder="Search by phone number..." type="text" oninput="filterBookings()">
+      <button class="btn btn-primary" onclick="filterBookings()">Search</button>
+    </div>
+    <div id="myBookingsList"><div style="text-align:center;padding:60px 20px;color:var(--text3);font-family:'Cormorant Garamond',serif;font-size:1.2rem;font-style:italic;">Enter your phone number above to find your appointments.</div></div>
+  </div>
+
+</div>
+
+<footer><p>© 2025 <span>Sri Sairam Siddha Hospital</span> · Traditional Healing, Modern Care · <span>Est. 1985</span></p></footer>
+
+<script>
+const API='/api';
+let state={doctors:[],selectedDoctor:null,selectedDate:null,selectedSlot:null,consType:'inperson',user:null,bookedSlots:[]};
+
+/* ── Canvas BG ── */
+(()=>{
+  const c=document.getElementById('bgCanvas'),ctx=c.getContext('2d');
+  let W,H,orbs=[],stars=[];
+  function resize(){W=c.width=window.innerWidth;H=c.height=window.innerHeight;}
+  function init(){
+    orbs=[
+      {x:W*.15,y:H*.2,r:350,col:'0,168,150',a:0.06,vx:.1,vy:.07},
+      {x:W*.85,y:H*.75,r:280,col:'212,168,71',a:0.045,vx:-.08,vy:.09},
+      {x:W*.5,y:H*.5,r:200,col:'0,195,154',a:0.035,vx:.06,vy:-.06}
+    ];
+    stars=Array.from({length:70},()=>({x:Math.random()*W,y:Math.random()*H,r:Math.random()*1.3+.3,a:Math.random()*.5+.1,vx:(Math.random()-.5)*.25,vy:-Math.random()*.35-.05,col:Math.random()>.5?'0,168,150':'212,168,71'}));
+  }
+  function draw(){
+    ctx.clearRect(0,0,W,H);
+    orbs.forEach(o=>{
+      o.x+=o.vx;o.y+=o.vy;
+      if(o.x<-o.r||o.x>W+o.r)o.vx*=-1;
+      if(o.y<-o.r||o.y>H+o.r)o.vy*=-1;
+      const g=ctx.createRadialGradient(o.x,o.y,0,o.x,o.y,o.r);
+      g.addColorStop(0,`rgba(${o.col},${o.a})`);g.addColorStop(1,'transparent');
+      ctx.fillStyle=g;ctx.beginPath();ctx.arc(o.x,o.y,o.r,0,Math.PI*2);ctx.fill();
+    });
+    stars.forEach(p=>{
+      p.x+=p.vx;p.y+=p.vy;
+      if(p.y<-5){p.y=H+5;p.x=Math.random()*W;}
+      if(p.x<-5||p.x>W+5)p.x=Math.random()*W;
+      ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+      ctx.fillStyle=`rgba(${p.col},${p.a})`;ctx.fill();
+    });
+    requestAnimationFrame(draw);
+  }
+  window.addEventListener('resize',()=>{resize();init();});
+  resize();init();draw();
+})();
+
+/* ── Cursor ── */
+(()=>{
+  const cur=document.getElementById('cursor');
+  const dot=cur.querySelector('.cursor-dot'),ring=cur.querySelector('.cursor-ring');
+  let mx=-100,my=-100,rx=-100,ry=-100;
+  document.addEventListener('mousemove',e=>{mx=e.clientX;my=e.clientY;});
+  (function anim(){
+    rx+=(mx-rx)*.14;ry+=(my-ry)*.14;
+    dot.style.cssText=`left:${mx}px;top:${my}px;`;
+    ring.style.cssText=`left:${rx}px;top:${ry}px;`;
+    requestAnimationFrame(anim);
+  })();
+  const hoverEls='button,a,.doc-card,.date-cell,.slot,.cons-opt,.btn-hero';
+  document.addEventListener('mouseover',e=>{
+    if(e.target.closest(hoverEls)){ring.style.transform='translate(-50%,-50%) scale(1.6)';ring.style.borderColor='rgba(0,168,150,0.8)';}
+  });
+  document.addEventListener('mouseout',e=>{
+    if(e.target.closest(hoverEls)){ring.style.transform='translate(-50%,-50%) scale(1)';ring.style.borderColor='rgba(0,168,150,0.5)';}
+  });
+})();
+
+/* ── Ripple ── */
+document.addEventListener('click',e=>{
+  const el=e.target.closest('.doc-card,.date-cell,.slot,.btn,.btn-hero,.cons-opt');
+  if(!el)return;
+  const r=document.createElement('span');r.className='ripple';
+  const rect=el.getBoundingClientRect(),sz=Math.max(rect.width,rect.height);
+  r.style.cssText=`width:${sz}px;height:${sz}px;left:${e.clientX-rect.left-sz/2}px;top:${e.clientY-rect.top-sz/2}px;`;
+  el.appendChild(r);setTimeout(()=>r.remove(),600);
+});
+
+/* ── Header scroll ── */
+window.addEventListener('scroll',()=>document.getElementById('mainHeader').classList.toggle('scrolled',window.scrollY>50));
+
+/* ── Load screen ── */
+window.addEventListener('load',()=>{setTimeout(()=>{const ls=document.getElementById('loadScreen');ls.classList.add('hidden');setTimeout(()=>ls.remove(),800);},1200);});
+
+/* ── Auth ── */
+function getToken(){return localStorage.getItem('patient_token');}
+function getUser(){const t=getToken();if(!t)return null;try{return JSON.parse(atob(t.split('.')[1]));}catch{return null;}}
+function showLogin(){document.getElementById('loginModal').style.display='flex';}
+function showLoginStep1(){document.getElementById('loginStep1').style.display='block';document.getElementById('loginStep2').style.display='none';}
+function updateAuthUI(){
+  const user=getUser(),area=document.getElementById('authArea');
+  if(user){
+    const ini=user.name?user.name.split(' ').map(n=>n[0]).join('').slice(0,2).toUpperCase():'?';
+    area.innerHTML=`<div class="user-chip"><div class="user-av">${ini}</div>${user.name}</div><button class="logout-btn" onclick="logout()">Logout</button>`;
+  }else{
+    area.innerHTML=`<button class="nav-btn" onclick="showLogin()">🔑 Login</button>`;
+  }
+}
+function logout(){localStorage.removeItem('patient_token');updateAuthUI();showNotif('info','Logged out','You have been logged out.');}
+
+async function requestOTP(){
+  const name=document.getElementById('loginName').value.trim(),email=document.getElementById('loginEmail').value.trim(),phone=document.getElementById('loginPhone').value.trim();
+  if(!name||!email||!phone){showNotif('alert','Missing Info','Please fill in all fields.');return;}
+  const btn=document.getElementById('sendOtpBtn');btn.innerHTML='<div class="spinner"></div> Sending...';btn.disabled=true;
+  try{
+    const res=await fetch(`${API}/patient/request-otp`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name,email,phone})});
+    const data=await res.json();if(!res.ok)throw new Error(data.error);
+    document.getElementById('otpSentMsg').textContent=`OTP sent to ${email}. Check your inbox.`;
+    document.getElementById('loginStep1').style.display='none';document.getElementById('loginStep2').style.display='block';
+    showNotif('success','📧 OTP Sent!',`Check ${email} for your code.`);
+  }catch(e){showNotif('alert','Error',e.message);}
+  btn.innerHTML='<span>Send OTP to Email</span>';btn.disabled=false;
+}
+
+function otpNext(input,idx){const inputs=document.querySelectorAll('.otp-input');if(input.value&&idx<5)inputs[idx+1].focus();}
+
+async function verifyOTP(){
+  const email=document.getElementById('loginEmail').value.trim();
+  const otp=[...document.querySelectorAll('.otp-input')].map(i=>i.value).join('');
+  if(otp.length<6){showNotif('alert','Incomplete','Enter all 6 OTP digits.');return;}
+  const btn=document.getElementById('verifyBtn');btn.innerHTML='<div class="spinner"></div> Verifying...';btn.disabled=true;
+  try{
+    const res=await fetch(`${API}/patient/verify-otp`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email,otp})});
+    const data=await res.json();if(!res.ok)throw new Error(data.error);
+    localStorage.setItem('patient_token',data.token);
+    document.getElementById('loginModal').style.display='none';
+    updateAuthUI();
+    if(data.patient){document.getElementById('ptName').value=data.patient.name||'';document.getElementById('ptPhone').value=data.patient.phone||'';document.getElementById('ptEmail').value=data.patient.email||'';}
+    showNotif('success','✅ Logged In!',`Welcome back, ${data.patient.name}!`);
+    loadMyBookings();
+  }catch(e){showNotif('alert','Verification Failed',e.message);}
+  btn.innerHTML='<span>Verify & Login</span>';btn.disabled=false;
+}
+
+/* ── Navigation ── */
+function scrollToBooking(){document.getElementById('stepsBar').scrollIntoView({behavior:'smooth'});showSection('book');}
+function showSection(sec){
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.getElementById('sec-'+sec).classList.add('active');
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  if(sec==='book'){
+    document.getElementById('stepsBar').classList.add('show');
+    document.querySelector('[onclick="showSection(\'book\')"]')?.classList.add('active');
+  }else{
+    document.getElementById('stepsBar').classList.remove('show');
+    document.querySelector('[onclick="showSection(\'mybookings\')"]')?.classList.add('active');
+    if(sec==='mybookings')loadMyBookings();
+    setTimeout(()=>document.querySelector('.main').scrollIntoView({behavior:'smooth'}),50);
+  }
+}
+function goStep(n){
+  for(let i=1;i<=4;i++){const el=document.getElementById('bookStep'+i);if(el)el.style.display=i===n?'block':'none';}
+  updateStepsUI(n);
+  if(n===2)renderDateGrid();
+  window.scrollTo({top:document.getElementById('stepsBar').offsetTop-80,behavior:'smooth'});
+}
+function updateStepsUI(n){for(let i=1;i<=4;i++){const el=document.getElementById('stepUI'+i);if(!el)continue;el.classList.toggle('active',i===n);el.classList.toggle('done',i<n);}}
+
+/* ── Stats ── */
+async function loadStats(){
+  try{
+    const r=await fetch(`${API}/admin/stats`).catch(()=>null);
+    if(r&&r.ok){const s=await r.json();animCount('statToday',s.todayBookings||0);}
+  }catch{}
+}
+function animCount(id,target){
+  const el=document.getElementById(id);if(!el)return;
+  let cur=0;const step=Math.max(1,Math.ceil(target/30));
+  const t=setInterval(()=>{cur=Math.min(cur+step,target);el.textContent=cur;if(cur>=target)clearInterval(t);},40);
+}
+
+/* ── Doctors ── */
+async function loadDoctors(){
+  try{
+    const res=await fetch(`${API}/doctors`);state.doctors=await res.json();
+    renderDoctors();animCount('statDoctors',state.doctors.filter(d=>d.available).length);
+  }catch(e){document.getElementById('doctorGrid').innerHTML='<div style="color:var(--rose);padding:30px;text-align:center;grid-column:1/-1;">Failed to load doctors. Please refresh.</div>';}
+}
+function renderDoctors(){
+  const grid=document.getElementById('doctorGrid');
+  if(!state.doctors.length){grid.innerHTML='<div style="color:var(--text2);padding:40px;text-align:center;grid-column:1/-1;">No doctors available</div>';return;}
+  grid.innerHTML=state.doctors.map(d=>{
+    const ini=d.name.replace('Dr.','').trim().split(' ').filter(Boolean).map(w=>w[0]).join('').slice(0,2).toUpperCase();
+    const avatarHtml=d.avatar?`<div class="doc-avatar"><img src="${d.avatar}" alt="${d.name}" onerror="this.parentElement.innerHTML='${ini}'"></div>`:`<div class="doc-avatar">${ini}</div>`;
+    const gi=d.gender==='Female'?'👩‍⚕️':'👨‍⚕️';
+    return `<div class="doc-card${!d.available?' unavailable':''}${state.selectedDoctor===d._id?' selected':''}" onclick="selectDoctor('${d._id}')">
+      <div class="doc-sel-badge">✓ SELECTED</div>
+      <div class="doc-header">${avatarHtml}<div class="doc-info"><h3>${d.name}</h3><div class="reg">${gi} ${d.regNo}</div></div></div>
+      <div class="doc-spec">${d.spec}</div>
+      <div class="doc-qual">${d.qual}</div>
+      <div class="doc-meta">
+        ${d.available?`<span class="doc-badge badge-online">✓ Available</span>`:`<span class="doc-badge badge-offline">✗ Unavailable</span>`}
+        ${d.onlineEnabled?`<span class="doc-badge badge-online">💻 Online</span>`:''}
+        <span class="doc-badge badge-free">FREE</span>
+        ${d.exp>0?`<span class="doc-badge badge-exp">${d.exp}y exp</span>`:''}
+      </div>
+      ${d.schedule?`<div class="doc-schedule">🕐 ${d.schedule}</div>`:''}
+    </div>`;
+  }).join('');
+}
+function selectDoctor(id){
+  state.selectedDoctor=id;renderDoctors();
+  document.getElementById('btnStep1Next').disabled=false;
+  setTimeout(()=>goStep(2),200);
+}
+
+/* ── Date & Slots ── */
+function renderDateGrid(){
+  const grid=document.getElementById('dateGrid'),today=new Date();today.setHours(0,0,0,0);
+  let html='';
+  for(let i=0;i<14;i++){
+    const d=new Date(today);d.setDate(today.getDate()+i);
+    const isPast=d<today,isSun=d.getDay()===0;
+    const days=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+    const isSel=state.selectedDate===d.toISOString().split('T')[0];
+    html+=`<div class="date-cell${isPast||isSun?' past':''}${isSel?' selected':''}" onclick="selectDate('${d.toISOString().split('T')[0]}')"><div class="day-name">${days[d.getDay()]}</div><div class="day-num">${d.getDate()}</div></div>`;
+  }
+  grid.innerHTML=html;
+  if(state.selectedDate)loadSlots();
+}
+async function selectDate(dateStr){
+  state.selectedDate=dateStr;state.selectedSlot=null;renderDateGrid();
+  document.getElementById('btnStep2Next').disabled=true;
+  await loadSlots();
+}
+async function loadSlots(){
+  const doctor=state.doctors.find(d=>d._id===state.selectedDoctor);
+  if(!doctor||!state.selectedDate)return;
+  document.getElementById('slotsGrid').innerHTML='<div class="slot-loading">Loading slots...</div>';
+  document.getElementById('waitEst').textContent='Loading...';
+  try{
+    const res=await fetch(`${API}/bookings/slots?doctorId=${state.selectedDoctor}&date=${state.selectedDate}`);
+    state.bookedSlots=await res.json();
+    const all=[...(doctor.slots?.morning||[]),...(doctor.slots?.afternoon||[]),...(doctor.slots?.evening||[])];
+    const avail=all.filter(s=>!state.bookedSlots.includes(s)).length;
+    document.getElementById('waitEst').textContent=`${avail} slots available`;
+    document.getElementById('slotsGrid').innerHTML=all.length?all.map(slot=>{
+      const isB=state.bookedSlots.includes(slot),isS=state.selectedSlot===slot;
+      return `<div class="slot${isB?' booked':''}${isS?' selected':''}" onclick="${isB?'':` selectSlot('${slot}')`}"><div class="time-txt">${slot}</div><div class="queue-txt">${isB?'Booked':'Available'}</div></div>`;
+    }).join(''):'<div class="slot-loading">No slots configured for this doctor</div>';
+  }catch(e){document.getElementById('slotsGrid').innerHTML='<div class="slot-loading" style="color:var(--rose);">Failed to load slots</div>';}
+}
+function selectSlot(slot){
+  state.selectedSlot=slot;
+  document.querySelectorAll('.slot').forEach(s=>s.classList.toggle('selected',s.querySelector('.time-txt')?.textContent===slot));
+  document.getElementById('btnStep2Next').disabled=false;
+}
+
+/* ── Consult Type ── */
+function selectConsType(type){
+  state.consType=type;
+  document.getElementById('consInperson').classList.toggle('selected',type==='inperson');
+  document.getElementById('consOnline').classList.toggle('selected',type==='online');
+  document.getElementById('onlineBanner').style.display=type==='online'?'block':'none';
+}
+
+/* ── Submit ── */
+async function submitBooking(){
+  const name=document.getElementById('ptName').value.trim(),age=document.getElementById('ptAge').value,gender=document.getElementById('ptGender').value,phone=document.getElementById('ptPhone').value.trim(),complaint=document.getElementById('ptComplaint').value.trim();
+  if(!name||!age||!gender||!phone||!complaint){showNotif('alert','Missing Info','Please fill all required fields (*)');return;}
+  const btn=document.getElementById('btnConfirm');btn.innerHTML='<div class="spinner"></div> Booking...';btn.disabled=true;
+  const payload={doctorId:state.selectedDoctor,date:state.selectedDate,time:state.selectedSlot,name,age:parseInt(age),gender,phone,email:document.getElementById('ptEmail').value.trim(),complaint,history:document.getElementById('ptHistory').value.trim(),type:state.consType,notifEmail:document.getElementById('notifEmail').checked};
+  try{
+    const headers={'Content-Type':'application/json'};if(getToken())headers['Authorization']='Bearer '+getToken();
+    const res=await fetch(`${API}/bookings`,{method:'POST',headers,body:JSON.stringify(payload)});
+    const data=await res.json();if(!res.ok)throw new Error(data.error);
+    document.getElementById('tokenNumber').textContent=data.token;
+    document.getElementById('tokenTime').textContent=`${new Date(data.date).toDateString()} at ${data.time}`;
+    document.getElementById('summaryContent').innerHTML=`
+      <div class="summary-row"><span>Patient</span><span>${data.name} (${data.age}y, ${data.gender})</span></div>
+      <div class="summary-row"><span>Doctor</span><span>${data.doctorName}</span></div>
+      <div class="summary-row"><span>Specialization</span><span>${data.doctorSpec}</span></div>
+      <div class="summary-row"><span>Date & Time</span><span>${new Date(data.date).toDateString()}, ${data.time}</span></div>
+      <div class="summary-row"><span>Type</span><span>${data.type==='online'?'💻 Online':'🏥 In-Person'}</span></div>
+      <div class="summary-row"><span>Consultation Fee</span><span style="color:var(--jade2);">FREE</span></div>`;
+    goStep(4);showNotif('success','✅ Booked!',`Token ${data.token} confirmed. Check your email!`);loadStats();
+  }catch(e){showNotif('alert','Booking Failed',e.message);}
+  btn.innerHTML='<span>Confirm Appointment ✓</span>';btn.disabled=false;
+}
+
+function resetBooking(){
+  state.selectedDoctor=null;state.selectedDate=null;state.selectedSlot=null;state.consType='inperson';
+  ['ptName','ptAge','ptPhone','ptEmail','ptComplaint','ptHistory'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  document.getElementById('ptGender').value='';
+  document.getElementById('btnStep1Next').disabled=true;
+  goStep(1);renderDoctors();
+}
+
+/* ── My Bookings ── */
+async function loadMyBookings(){
+  const phone=document.getElementById('searchPhone').value.trim();
+  if(!phone)return;
+  const list=document.getElementById('myBookingsList');
+  list.innerHTML='<div style="text-align:center;padding:40px;color:var(--text2);">Loading...</div>';
+  try{
+    const headers={};if(getToken())headers['Authorization']='Bearer '+getToken();
+    const res=await fetch(`${API}/bookings/my?phone=${encodeURIComponent(phone)}`,{headers});
+    if(!res.ok){const d=await res.json();throw new Error(d.error);}
+    const bookings=await res.json();
+    if(!bookings.length){list.innerHTML='<div style="text-align:center;padding:60px 20px;color:var(--text3);font-family:\'Cormorant Garamond\',serif;font-size:1.2rem;font-style:italic;">No bookings found for this number.</div>';return;}
+    list.innerHTML=bookings.map(b=>`
+      <div class="booking-item">
+        <div><div class="booking-status status-${b.status}">${b.status.toUpperCase()}</div></div>
+        <div class="booking-info">
+          <h4>${b.name} — ${b.doctorName}</h4>
+          <p>📅 ${new Date(b.date).toDateString()} at ${b.time} &nbsp;|&nbsp; ${b.doctorSpec} &nbsp;|&nbsp; ${b.type==='online'?'💻 Online':'🏥 In-Person'}</p>
+          <p style="margin-top:4px;">🔢 Token: <strong style="color:var(--gold2);">${b.token}</strong> &nbsp;|&nbsp; ${b.complaint}</p>
+          ${b.meetLink?`<p style="margin-top:4px;color:var(--jade2);">🔗 <a href="${b.meetLink}" target="_blank" style="color:var(--jade2);">${b.meetLink}</a></p>`:''}
+        </div>
+        ${b.status==='confirmed'?`<button class="cancel-btn" onclick="cancelBooking('${b._id}','${b.phone}')">Cancel</button>`:''}
+      </div>`).join('');
+  }catch(e){list.innerHTML=`<div style="text-align:center;padding:40px;color:var(--rose);">Error: ${e.message}</div>`;}
+}
+function filterBookings(){loadMyBookings();}
+async function cancelBooking(id,phone){
+  if(!confirm('Cancel this appointment?'))return;
+  try{
+    const headers={'Content-Type':'application/json'};if(getToken())headers['Authorization']='Bearer '+getToken();
+    const res=await fetch(`${API}/bookings/${id}/cancel?phone=${phone}`,{method:'PUT',headers});
+    const data=await res.json();if(!res.ok)throw new Error(data.error);
+    showNotif('info','Cancelled',`Appointment ${data.token} has been cancelled.`);loadMyBookings();
+  }catch(e){showNotif('alert','Error',e.message);}
+}
+
+/* ── Notifications ── */
+function showNotif(type,title,msg){
+  const panel=document.getElementById('notifPanel'),card=document.createElement('div');
+  card.className=`notif-card ${type}`;
+  const icons={success:'✅',info:'ℹ️',alert:'⚠️'};
+  card.innerHTML=`<div class="notif-icon">${icons[type]||'🔔'}</div><div class="notif-body"><h4>${title}</h4><p>${msg}</p></div><button class="notif-close" onclick="this.parentElement.remove()">✕</button>`;
+  panel.appendChild(card);
+  setTimeout(()=>{card.style.animation='slideIn 0.4s ease reverse';setTimeout(()=>card.remove(),400);},5000);
+}
+
+/* ── Init ── */
+document.addEventListener('DOMContentLoaded',async()=>{
+  updateAuthUI();
+  await loadDoctors();
+  loadStats();
+  const user=getUser();
+  if(user){document.getElementById('ptName').value=user.name||'';document.getElementById('ptEmail').value=user.email||'';}
+});
+</script>
+</body>
+</html>
