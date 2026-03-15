@@ -600,6 +600,249 @@ footer span{color:var(--jade2);}
   .dev-stat-num{font-size:1.6rem;}
 }
 
+/* ═══════════════════════════════════════════════════
+   AI SYMPTOM ANALYSER  —  Full Feature Styles
+═══════════════════════════════════════════════════ */
+
+/* ── Symptom input area ── */
+.ai-input-wrap{
+  background:var(--card-bg);border:1px solid var(--border);
+  border-radius:20px;padding:28px;backdrop-filter:blur(14px);
+  margin-bottom:24px;position:relative;overflow:hidden;
+}
+.ai-input-wrap::before{
+  content:'';position:absolute;top:-60px;right:-60px;
+  width:220px;height:220px;border-radius:50%;
+  background:radial-gradient(circle,rgba(0,168,150,0.06),transparent 70%);
+  pointer-events:none;
+}
+.ai-label{
+  font-family:'Space Mono',monospace;font-size:0.58rem;
+  color:var(--text3);letter-spacing:2.5px;text-transform:uppercase;
+  margin-bottom:10px;display:flex;align-items:center;gap:8px;
+}
+.ai-label::before{content:'✦';color:var(--jade2);font-size:0.65rem;}
+.ai-textarea{
+  width:100%;background:rgba(0,0,0,0.35);
+  border:1px solid rgba(255,255,255,0.07);border-radius:12px;
+  padding:14px 16px;color:var(--text);
+  font-family:'DM Sans',sans-serif;font-size:0.92rem;
+  line-height:1.7;outline:none;resize:vertical;min-height:110px;
+  transition:all 0.3s;
+}
+.ai-textarea:focus{
+  border-color:var(--jade);background:rgba(0,168,150,0.04);
+  box-shadow:0 0 0 3px rgba(0,168,150,0.1);
+}
+.ai-textarea::placeholder{color:var(--text3);}
+
+/* Symptom chip suggestions */
+.symptom-chips{display:flex;flex-wrap:wrap;gap:7px;margin:13px 0;}
+.symp-chip{
+  padding:5px 14px;border-radius:100px;
+  border:1px solid rgba(0,168,150,0.2);
+  color:var(--jade2);background:rgba(0,168,150,0.06);
+  font-size:0.73rem;cursor:pointer;transition:all 0.2s;
+  font-family:'DM Sans',sans-serif;
+}
+.symp-chip:hover{background:rgba(0,168,150,0.16);border-color:var(--jade2);transform:translateY(-1px);}
+.symp-chip.active{background:rgba(0,168,150,0.22);border-color:var(--jade2);color:#fff;}
+
+/* Analyse button */
+.btn-analyse{
+  display:inline-flex;align-items:center;gap:10px;
+  padding:14px 30px;border-radius:11px;border:none;cursor:pointer;
+  background:linear-gradient(135deg,var(--jade),var(--jade2));
+  color:#fff;font-family:'DM Sans',sans-serif;font-size:0.9rem;font-weight:600;
+  box-shadow:0 4px 24px rgba(0,168,150,0.35);
+  transition:all 0.3s;position:relative;overflow:hidden;
+}
+.btn-analyse:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 8px 36px rgba(0,168,150,0.55);}
+.btn-analyse:disabled{opacity:0.6;cursor:not-allowed;transform:none;}
+.btn-analyse .ai-spin{
+  width:16px;height:16px;border:2px solid rgba(255,255,255,0.3);
+  border-top-color:#fff;border-radius:50%;animation:aispin 0.7s linear infinite;display:none;
+}
+.btn-analyse.loading .ai-spin{display:block;}
+.btn-analyse.loading .ai-btn-icon{display:none;}
+@keyframes aispin{to{transform:rotate(360deg);}}
+
+/* ── Results panel ── */
+.ai-results{
+  display:none;
+  animation:secIn 0.5s cubic-bezier(0.16,1,0.3,1) both;
+}
+.ai-results.show{display:block;}
+
+/* Urgency banner */
+.urgency-banner{
+  border-radius:12px;padding:14px 18px;margin-bottom:20px;
+  display:flex;align-items:center;gap:12px;
+  font-size:0.85rem;font-weight:600;
+  border:1px solid;
+}
+.urgency-Emergency{background:rgba(232,68,90,0.1);border-color:rgba(232,68,90,0.35);color:var(--rose);}
+.urgency-High     {background:rgba(245,158,11,0.09);border-color:rgba(245,158,11,0.35);color:var(--amber);}
+.urgency-Moderate {background:rgba(0,168,150,0.09);border-color:rgba(0,168,150,0.25);color:var(--jade2);}
+.urgency-Low      {background:rgba(16,185,129,0.08);border-color:rgba(16,185,129,0.25);color:var(--emerald);}
+
+/* Conditions grid */
+.conditions-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:12px;margin-bottom:24px;}
+.condition-card{
+  background:var(--card-bg);border:1px solid var(--border);
+  border-radius:14px;padding:18px;backdrop-filter:blur(10px);
+  transition:all 0.25s;animation:cardIn 0.4s ease both;
+}
+.condition-card:hover{border-color:rgba(0,168,150,0.3);transform:translateY(-3px);}
+.cond-name{font-weight:600;font-size:0.9rem;margin-bottom:5px;}
+.cond-prob{
+  display:inline-block;font-family:'Space Mono',monospace;
+  font-size:0.55rem;letter-spacing:1.5px;text-transform:uppercase;
+  padding:2px 9px;border-radius:100px;margin-bottom:8px;border:1px solid;
+}
+.prob-High    {background:rgba(232,68,90,0.08);border-color:rgba(232,68,90,0.3);color:var(--rose);}
+.prob-Medium  {background:rgba(245,158,11,0.07);border-color:rgba(245,158,11,0.3);color:var(--amber);}
+.prob-Low     {background:rgba(16,185,129,0.07);border-color:rgba(16,185,129,0.2);color:var(--emerald);}
+.cond-desc{font-size:0.78rem;color:var(--text2);line-height:1.6;}
+
+/* Specialist recommendation */
+.spec-rec{
+  background:linear-gradient(135deg,rgba(0,168,150,0.09),rgba(212,168,71,0.05));
+  border:1px solid rgba(0,168,150,0.25);border-radius:16px;
+  padding:20px 22px;margin-bottom:24px;display:flex;align-items:center;gap:16px;
+}
+.spec-icon{font-size:2rem;flex-shrink:0;}
+.spec-info h4{font-size:0.78rem;font-family:'Space Mono',monospace;color:var(--text3);letter-spacing:2px;text-transform:uppercase;margin-bottom:4px;}
+.spec-info p {font-size:1rem;font-weight:600;color:var(--jade2);}
+
+/* Siddha insight */
+.siddha-card{
+  background:linear-gradient(135deg,rgba(212,168,71,0.07),rgba(0,168,150,0.04));
+  border:1px solid rgba(212,168,71,0.2);border-radius:14px;
+  padding:18px 20px;margin-bottom:24px;
+  font-size:0.84rem;color:var(--text2);line-height:1.75;
+}
+.siddha-card strong{color:var(--gold2);font-weight:600;}
+
+/* Advice box */
+.advice-box{
+  background:var(--glass);border:1px solid var(--border);
+  border-radius:14px;padding:18px 20px;margin-bottom:28px;
+}
+.advice-box p{font-size:0.82rem;color:var(--text2);line-height:2;}
+
+/* Recommended doctors section */
+.ai-doctors-title{
+  font-family:'Cormorant Garamond',serif;font-size:1.35rem;
+  font-weight:400;margin-bottom:6px;letter-spacing:-0.2px;
+}
+.ai-doctors-sub{font-size:0.8rem;color:var(--text2);margin-bottom:18px;}
+.ai-doc-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px;margin-bottom:26px;}
+
+/* AI doctor card inherits .doc-card but adds book button */
+.ai-doc-card{
+  background:var(--card-bg);border:1px solid var(--border);
+  border-radius:16px;padding:20px;backdrop-filter:blur(12px);
+  transition:all 0.35s cubic-bezier(0.16,1,0.3,1);animation:cardIn 0.4s ease both;
+}
+.ai-doc-card:hover{transform:translateY(-5px);border-color:var(--jade);box-shadow:0 20px 50px rgba(0,0,0,0.35);}
+.btn-book-ai{
+  display:block;width:100%;margin-top:14px;padding:10px 0;
+  border-radius:9px;border:none;cursor:pointer;
+  background:linear-gradient(135deg,var(--jade),var(--jade2));
+  color:#fff;font-family:'DM Sans',sans-serif;font-size:0.82rem;font-weight:600;
+  transition:all 0.25s;box-shadow:0 3px 14px rgba(0,168,150,0.3);
+}
+.btn-book-ai:hover{box-shadow:0 6px 24px rgba(0,168,150,0.5);transform:translateY(-1px);}
+
+/* Reset / back button */
+.btn-ai-reset{
+  display:inline-flex;align-items:center;gap:8px;
+  padding:10px 22px;border-radius:9px;
+  border:1px solid var(--border);background:transparent;
+  color:var(--text2);font-family:'DM Sans',sans-serif;font-size:0.84rem;
+  cursor:pointer;transition:all 0.2s;
+}
+.btn-ai-reset:hover{border-color:var(--jade);color:var(--jade2);}
+
+/* Disclaimer */
+.ai-disclaimer{
+  font-size:0.72rem;color:var(--text3);
+  border-top:1px solid var(--border);padding-top:14px;margin-top:10px;
+  font-style:italic;line-height:1.7;
+}
+
+@media(max-width:768px){
+  .conditions-grid{grid-template-columns:1fr;}
+  .ai-doc-grid{grid-template-columns:1fr;}
+  .spec-rec{flex-direction:column;text-align:center;}
+}
+/* ═══════════════════════════════════════════════════
+   AI HEALTH ASSISTANT  —  Styles
+═══════════════════════════════════════════════════ */
+.health-form-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:16px;margin-bottom:24px;}
+.health-field{display:flex;flex-direction:column;gap:6px;}
+.health-field label{font-family:'Space Mono',monospace;font-size:0.58rem;color:var(--text3);letter-spacing:2px;text-transform:uppercase;}
+.health-field input,.health-field select{background:rgba(0,0,0,0.35);border:1px solid rgba(255,255,255,0.07);border-radius:9px;padding:11px 14px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:0.88rem;outline:none;transition:all 0.25s;}
+.health-field input:focus,.health-field select:focus{border-color:var(--jade);background:rgba(0,168,150,0.04);box-shadow:0 0 0 3px rgba(0,168,150,0.1);}
+.health-field select option{background:var(--deep2);}
+.health-field.full{grid-column:1/-1;}
+
+/* Score ring */
+.score-ring-wrap{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px 20px;}
+.score-ring{position:relative;width:160px;height:160px;}
+.score-ring svg{transform:rotate(-90deg);}
+.score-ring-bg{fill:none;stroke:rgba(255,255,255,0.06);stroke-width:12;}
+.score-ring-fill{fill:none;stroke-width:12;stroke-linecap:round;transition:stroke-dashoffset 1.5s cubic-bezier(0.16,1,0.3,1);}
+.score-center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;}
+.score-num{font-family:'Cormorant Garamond',serif;font-size:2.8rem;font-weight:700;line-height:1;}
+.score-label{font-family:'Space Mono',monospace;font-size:0.52rem;letter-spacing:2px;text-transform:uppercase;margin-top:4px;}
+.score-status{font-family:'Space Mono',monospace;font-size:0.7rem;letter-spacing:2px;text-transform:uppercase;margin-top:10px;padding:4px 16px;border-radius:100px;border:1px solid;}
+
+/* Status colors */
+.status-Excellent{color:#10b981;border-color:rgba(16,185,129,0.4);background:rgba(16,185,129,0.08);}
+.status-Good     {color:var(--jade2);border-color:rgba(0,168,150,0.4);background:rgba(0,168,150,0.08);}
+.status-Fair     {color:var(--amber);border-color:rgba(245,158,11,0.4);background:rgba(245,158,11,0.08);}
+.status-Poor     {color:var(--rose);border-color:rgba(232,68,90,0.4);background:rgba(232,68,90,0.08);}
+.status-Critical {color:#ff4444;border-color:rgba(255,68,68,0.5);background:rgba(255,68,68,0.1);}
+
+/* Sub-score bars */
+.sub-scores-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px;margin-bottom:24px;}
+.sub-score-card{background:var(--card-bg);border:1px solid var(--border);border-radius:14px;padding:18px;backdrop-filter:blur(10px);}
+.sub-score-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;}
+.sub-score-name{font-size:0.8rem;font-weight:600;text-transform:capitalize;}
+.sub-score-val{font-family:'Cormorant Garamond',serif;font-size:1.3rem;font-weight:700;}
+.sub-score-bar-track{height:6px;background:rgba(255,255,255,0.06);border-radius:3px;overflow:hidden;}
+.sub-score-bar-fill{height:100%;border-radius:3px;transition:width 1.2s cubic-bezier(0.16,1,0.3,1);}
+.sub-score-insight{font-size:0.74rem;color:var(--text2);margin-top:9px;line-height:1.6;}
+
+/* Risk + Tips */
+.risk-tips-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px;}
+@media(max-width:640px){.risk-tips-grid{grid-template-columns:1fr;}}
+.risk-box,.tips-box{background:var(--card-bg);border:1px solid var(--border);border-radius:14px;padding:20px;backdrop-filter:blur(10px);}
+.rbox-title{font-family:'Space Mono',monospace;font-size:0.58rem;letter-spacing:2px;text-transform:uppercase;margin-bottom:14px;}
+.risk-item{display:flex;gap:10px;align-items:flex-start;padding:7px 0;border-bottom:1px solid rgba(255,255,255,0.04);font-size:0.8rem;color:var(--text2);line-height:1.5;}
+.risk-item:last-child{border-bottom:none;}
+.risk-dot{width:7px;height:7px;border-radius:50%;background:var(--rose);flex-shrink:0;margin-top:5px;}
+.tip-dot{width:7px;height:7px;border-radius:50%;background:var(--jade2);flex-shrink:0;margin-top:5px;}
+
+/* Health results layout */
+.health-results{display:none;animation:secIn 0.5s cubic-bezier(0.16,1,0.3,1) both;}
+.health-results.show{display:block;}
+.health-overview-card{background:linear-gradient(135deg,rgba(0,168,150,0.08),rgba(212,168,71,0.05));border:1px solid rgba(0,168,150,0.25);border-radius:20px;padding:28px;margin-bottom:24px;display:flex;align-items:center;gap:28px;flex-wrap:wrap;}
+.health-summary-text{flex:1;min-width:220px;}
+.health-summary-text h3{font-family:'Cormorant Garamond',serif;font-size:1.4rem;font-weight:400;margin-bottom:8px;}
+.health-summary-text p{font-size:0.84rem;color:var(--text2);line-height:1.75;}
+
+@media(max-width:768px){
+  .health-form-grid{grid-template-columns:1fr 1fr;}
+  .health-field.full{grid-column:1/-1;}
+  .health-overview-card{flex-direction:column;text-align:center;}
+  .score-ring-wrap{padding:20px 10px;}
+}
+@media(max-width:480px){
+  .health-form-grid{grid-template-columns:1fr;}
+}
 </style>
 </head>
 <body>
@@ -671,6 +914,8 @@ footer span{color:var(--jade2);}
     </div>
     <div class="nav-btns">
       <button class="nav-btn active" onclick="showSection('book')">📅 Book</button>
+      <button class="nav-btn" onclick="showSection('ai')">🧠 AI Symptoms</button>
+      <button class="nav-btn" onclick="showSection('health')">❤️ Health AI</button>
       <button class="nav-btn" onclick="showSection('mybookings')">📋 My Bookings</button>
       <button class="nav-btn dev-btn" onclick="showDevModal()">👨‍💻 Dev</button>
       <button class="nav-btn admin-btn" onclick="window.location.href='/admin'">⚙️ Admin</button>
@@ -690,7 +935,7 @@ footer span{color:var(--jade2);}
     <p>Book appointments with our expert Siddha physicians. Experience the power of traditional healing — free consultations for every patient.</p>
     <div class="hero-cta">
       <button class="btn-hero btn-hero-primary" onclick="scrollToBooking()"><span>Book Appointment</span><span>→</span></button>
-      <button class="btn-hero btn-hero-outline" onclick="showSection('mybookings')">View My Bookings</button>
+      <button class="btn-hero btn-hero-outline" onclick="showSection('ai')">🧠 AI Symptom Check</button>
     </div>
     <div class="hero-stats">
       <div class="stat-item"><div class="stat-num" id="statToday">-</div><div class="stat-label">Today's Patients</div></div>
@@ -786,6 +1031,242 @@ footer span{color:var(--jade2);}
       </div>
     </div>
 
+  </div>
+
+  <!-- AI SYMPTOM ANALYSER -->
+  <div class="section" id="sec-ai">
+
+    <!-- Input Phase -->
+    <div id="aiInputPhase">
+      <div class="section-title">🧠 AI Symptom Analyser</div>
+      <div class="section-sub">Describe your symptoms and our AI will suggest possible conditions, recommend the right Siddha specialist, and match you with the best doctor.</div>
+
+      <div class="ai-input-wrap">
+        <div class="ai-label">Describe Your Symptoms</div>
+        <textarea
+          class="ai-textarea"
+          id="symptomInput"
+          placeholder="e.g. I have had a persistent cough for 3 days, mild fever in the evenings, and some chest tightness..."
+          rows="4"
+        ></textarea>
+
+        <div style="margin:12px 0 4px;">
+          <div class="ai-label" style="margin-bottom:8px;">Quick Add</div>
+          <div class="symptom-chips" id="symptomChips">
+            <span class="symp-chip" onclick="addChip('Fever')">🌡️ Fever</span>
+            <span class="symp-chip" onclick="addChip('Headache')">🤕 Headache</span>
+            <span class="symp-chip" onclick="addChip('Cough')">😮‍💨 Cough</span>
+            <span class="symp-chip" onclick="addChip('Body pain')">💪 Body Pain</span>
+            <span class="symp-chip" onclick="addChip('Nausea or vomiting')">🤢 Nausea</span>
+            <span class="symp-chip" onclick="addChip('Fatigue and weakness')">😴 Fatigue</span>
+            <span class="symp-chip" onclick="addChip('Skin rash or itching')">🔴 Rash</span>
+            <span class="symp-chip" onclick="addChip('Joint pain')">🦴 Joint Pain</span>
+            <span class="symp-chip" onclick="addChip('Chest pain')">❤️ Chest Pain</span>
+            <span class="symp-chip" onclick="addChip('Abdominal pain')">🫃 Abdominal Pain</span>
+            <span class="symp-chip" onclick="addChip('Dizziness or vertigo')">💫 Dizziness</span>
+            <span class="symp-chip" onclick="addChip('Breathing difficulty')">🫁 Breathing</span>
+          </div>
+        </div>
+
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-top:18px;">
+          <button class="btn-analyse" id="analyseBtn" onclick="analyseSymptoms()">
+            <div class="ai-spin"></div>
+            <span class="ai-btn-icon">✦</span>
+            <span id="analyseBtnText">Analyse Symptoms</span>
+          </button>
+          <span style="font-size:0.72rem;color:var(--text3);font-style:italic;">Powered by AI · Results are for guidance only</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Results Phase -->
+    <div class="ai-results" id="aiResults">
+
+      <!-- Urgency Banner -->
+      <div class="urgency-banner" id="urgencyBanner"></div>
+
+      <!-- Siddha Insight -->
+      <div class="siddha-card" id="siddhaInsight"></div>
+
+      <!-- Detected Condition -->
+      <div class="section-title" style="font-size:1.2rem;margin-bottom:4px;">Detected Condition</div>
+      <div class="section-sub" style="margin-bottom:14px;">AI-powered clinical assessment based on your symptoms</div>
+      <div class="conditions-grid" id="conditionsGrid"></div>
+
+      <!-- Specialist Recommendation -->
+      <div class="spec-rec" id="specRec"></div>
+
+      <!-- Treatment Recommendations (Ayurveda + Siddha + Allopathy + Remedies + Precautions) -->
+      <div class="advice-box" id="adviceBox"></div>
+
+      <!-- Recommended Doctors -->
+      <div class="ai-doctors-title" id="aiDoctorsTitle"></div>
+      <div class="ai-doctors-sub" id="aiDoctorsSub"></div>
+      <div class="ai-doc-grid" id="aiDocGrid"></div>
+
+      <!-- Actions -->
+      <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin-bottom:10px;">
+        <button class="btn-ai-reset" onclick="resetAI()">← Analyse Again</button>
+        <button class="btn btn-primary" onclick="showSection('book')">📅 Book Appointment</button>
+      </div>
+
+      <div class="ai-disclaimer">
+        ⚕️ <strong>Medical Disclaimer:</strong> This AI analysis is for informational guidance only and does not constitute a medical diagnosis. Please consult a qualified Siddha physician for proper evaluation and treatment. In case of a medical emergency, seek immediate care.
+      </div>
+    </div>
+
+  </div>
+
+  <!-- AI HEALTH ASSISTANT -->
+  <div class="section" id="sec-health">
+
+    <!-- Input Form -->
+    <div id="healthInputPhase">
+      <div class="section-title">❤️ AI Health Assistant</div>
+      <div class="section-sub">Enter your health vitals and metrics — our AI will calculate your overall health score with a detailed breakdown across 6 key dimensions.</div>
+
+      <div class="ai-input-wrap">
+        <div class="ai-label">Personal Information</div>
+        <div class="health-form-grid">
+          <div class="health-field">
+            <label>Age *</label>
+            <input type="number" id="hAge" placeholder="e.g. 35" min="1" max="120">
+          </div>
+          <div class="health-field">
+            <label>Gender *</label>
+            <select id="hGender">
+              <option value="">Select</option>
+              <option>Male</option>
+              <option>Female</option>
+              <option>Other</option>
+            </select>
+          </div>
+          <div class="health-field">
+            <label>Blood Sugar — Fasting (mg/dL)</label>
+            <input type="number" id="hBloodSugar" placeholder="Normal: 70–99">
+          </div>
+          <div class="health-field">
+            <label>Blood Pressure (mmHg)</label>
+            <input type="text" id="hBP" placeholder="e.g. 120/80">
+          </div>
+          <div class="health-field">
+            <label>BMI</label>
+            <input type="number" id="hBMI" placeholder="Normal: 18.5–24.9" step="0.1">
+          </div>
+          <div class="health-field">
+            <label>Heart Rate (bpm)</label>
+            <input type="number" id="hHeartRate" placeholder="Normal: 60–100">
+          </div>
+          <div class="health-field">
+            <label>Total Cholesterol (mg/dL)</label>
+            <input type="number" id="hCholesterol" placeholder="Normal: &lt;200">
+          </div>
+          <div class="health-field">
+            <label>Haemoglobin (g/dL)</label>
+            <input type="number" id="hHaemoglobin" placeholder="Men: 13.5–17.5" step="0.1">
+          </div>
+          <div class="health-field">
+            <label>Sleep Hours / Night</label>
+            <input type="number" id="hSleep" placeholder="Recommended: 7–9" min="0" max="24">
+          </div>
+          <div class="health-field">
+            <label>Exercise Days / Week</label>
+            <input type="number" id="hExercise" placeholder="Recommended: 3–5" min="0" max="7">
+          </div>
+          <div class="health-field">
+            <label>Smoking</label>
+            <select id="hSmoking">
+              <option value="">Select</option>
+              <option>Non-smoker</option>
+              <option>Occasional</option>
+              <option>Regular</option>
+              <option>Heavy</option>
+              <option>Ex-smoker</option>
+            </select>
+          </div>
+          <div class="health-field">
+            <label>Alcohol Consumption</label>
+            <select id="hAlcohol">
+              <option value="">Select</option>
+              <option>None</option>
+              <option>Occasional</option>
+              <option>Moderate</option>
+              <option>Heavy</option>
+            </select>
+          </div>
+          <div class="health-field full">
+            <label>Known Medical Conditions</label>
+            <input type="text" id="hConditions" placeholder="e.g. Diabetes, Hypertension, Asthma (or None)">
+          </div>
+          <div class="health-field full">
+            <label>Current Symptoms (if any)</label>
+            <input type="text" id="hSymptoms" placeholder="e.g. Fatigue, frequent headaches, shortness of breath (or None)">
+          </div>
+        </div>
+
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-top:6px;">
+          <button class="btn-analyse" id="healthBtn" onclick="runHealthAssessment()">
+            <div class="ai-spin"></div>
+            <span class="ai-btn-icon">❤️</span>
+            <span id="healthBtnText">Assess My Health</span>
+          </button>
+          <span style="font-size:0.72rem;color:var(--text3);font-style:italic;">Powered by AI · For guidance only, not a medical diagnosis</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Results -->
+    <div class="health-results" id="healthResults">
+
+      <!-- Overview card with score ring -->
+      <div class="health-overview-card">
+        <div class="score-ring-wrap">
+          <div class="score-ring">
+            <svg viewBox="0 0 160 160" width="160" height="160">
+              <circle class="score-ring-bg" cx="80" cy="80" r="68"/>
+              <circle class="score-ring-fill" id="scoreRingFill" cx="80" cy="80" r="68"
+                stroke-dasharray="427" stroke-dashoffset="427"/>
+            </svg>
+            <div class="score-center">
+              <div class="score-num" id="scoreNum">0</div>
+              <div class="score-label" id="scoreLabel" style="color:var(--text3);">/ 100</div>
+            </div>
+          </div>
+          <div class="score-status" id="scoreStatus">—</div>
+        </div>
+
+        <div class="health-summary-text">
+          <h3 id="healthSummaryTitle">Your Health Overview</h3>
+          <p id="healthSummaryText"></p>
+        </div>
+      </div>
+
+      <!-- Sub-score bars -->
+      <div class="section-title" style="font-size:1.15rem;margin-bottom:4px;">Health Dimension Breakdown</div>
+      <div class="section-sub" style="margin-bottom:16px;">Scores across 6 key health dimensions</div>
+      <div class="sub-scores-grid" id="subScoresGrid"></div>
+
+      <!-- Risk factors + Tips -->
+      <div class="risk-tips-grid">
+        <div class="risk-box">
+          <div class="rbox-title" style="color:var(--rose);">⚠️ Risk Factors Identified</div>
+          <div id="riskList"></div>
+        </div>
+        <div class="tips-box">
+          <div class="rbox-title" style="color:var(--jade2);">✦ Improvement Tips</div>
+          <div id="tipsList"></div>
+        </div>
+      </div>
+
+      <!-- Actions -->
+      <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin-bottom:10px;">
+        <button class="btn-ai-reset" onclick="resetHealth()">← Reassess</button>
+        <button class="btn btn-primary" onclick="showSection('book')">📅 Book a Doctor</button>
+      </div>
+      <div class="ai-disclaimer">
+        ⚕️ <strong>Disclaimer:</strong> This AI health assessment is for informational purposes only and does not replace professional medical advice. Consult a qualified physician for accurate diagnosis and treatment.
+      </div>
+    </div>
   </div>
 
   <!-- MY BOOKINGS -->
@@ -941,8 +1422,14 @@ function showSection(sec){
     document.querySelector('[onclick="showSection(\'book\')"]')?.classList.add('active');
   }else{
     document.getElementById('stepsBar').classList.remove('show');
-    document.querySelector('[onclick="showSection(\'mybookings\')"]')?.classList.add('active');
-    if(sec==='mybookings')loadMyBookings();
+    if(sec==='mybookings'){
+      document.querySelector('[onclick="showSection(\'mybookings\')"]')?.classList.add('active');
+      loadMyBookings();
+    }else if(sec==='ai'){
+      document.querySelector('[onclick="showSection(\'ai\')"]')?.classList.add('active');
+    }else if(sec==='health'){
+      document.querySelector('[onclick="showSection(\'health\')"]')?.classList.add('active');
+    }
     setTimeout(()=>document.querySelector('.main').scrollIntoView({behavior:'smooth'}),50);
   }
 }
@@ -1238,8 +1725,269 @@ function handleDevPhoto(e) {
   reader.readAsDataURL(file);
 }
 
-// Close on Escape
-document.addEventListener('keydown', e => { if (e.key === 'Escape') hideDevModal(); });
+
+/* ══════════════════════════════════════════════════════
+   AI SYMPTOM ANALYSER  —  Client Logic
+══════════════════════════════════════════════════════ */
+
+// ── Quick-add symptom chips ───────────────────────────────────
+function addChip(text) {
+  const ta = document.getElementById('symptomInput');
+  ta.value = ta.value.trim() ? ta.value.trim() + ', ' + text : text;
+  document.querySelectorAll('.symp-chip').forEach(c => {
+    if (c.getAttribute('onclick') === `addChip('${text}')`) c.classList.toggle('active');
+  });
+  ta.focus();
+}
+
+// ── Symptom analysis ──────────────────────────────────────────
+async function analyseSymptoms() {
+  const symptoms = document.getElementById('symptomInput').value.trim();
+  if (!symptoms || symptoms.length < 5) {
+    showNotif('alert', 'Missing Info', 'Please describe your symptoms in at least a few words.');
+    return;
+  }
+  const btn = document.getElementById('analyseBtn');
+  const btnText = document.getElementById('analyseBtnText');
+  btn.classList.add('loading'); btn.disabled = true;
+  btnText.textContent = 'Analysing with Groq AI…';
+
+  try {
+    const user = getUser();
+    const res  = await fetch(`${API}/ai/symptom-analysis`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ symptoms, age: user?.age||'', gender: user?.gender||'', pastConditions: user?.pastcondition||'' }),
+    });
+    const data = await res.json();
+    renderAIResults(data);
+    showNotif('success', '✦ Analysis Complete', `Detected: ${data.disease}`);
+  } catch (err) {
+    showNotif('alert', 'Network Error', 'Could not reach the server.');
+  } finally {
+    btn.classList.remove('loading'); btn.disabled = false;
+    btnText.textContent = 'Analyse Symptoms';
+  }
+}
+
+function renderAIResults(data) {
+  const { disease, explanation, urgency, siddhaInsight, recommendedSpecialist, mappedSpec, recommendedDoctors } = data;
+
+  // Urgency banner
+  const urgencyIcons = { Emergency:'🚨', High:'⚠️', Moderate:'🔵', Low:'🟢' };
+  const urgencyMsgs  = { Emergency:'Seek emergency care immediately.', High:'Please visit the hospital soon.', Moderate:'Schedule an appointment at your convenience.', Low:'Monitor symptoms. Routine consultation advisable.' };
+  const urg = urgency || 'Moderate';
+  document.getElementById('urgencyBanner').className = `urgency-banner urgency-${urg}`;
+  document.getElementById('urgencyBanner').innerHTML =
+    `<span style="font-size:1.4rem">${urgencyIcons[urg]||'🔵'}</span>
+     <div><strong>Urgency: ${urg}</strong><br>
+     <span style="font-weight:400;font-size:0.82rem">${urgencyMsgs[urg]||''}</span></div>`;
+
+  // Siddha insight
+  document.getElementById('siddhaInsight').innerHTML =
+    `<strong>🌿 Siddha Perspective —</strong> ${siddhaInsight || ''}`;
+
+  // Detected condition
+  document.getElementById('conditionsGrid').innerHTML = `
+    <div class="condition-card" style="grid-column:1/-1;border-color:rgba(0,168,150,0.35);">
+      <div style="font-family:'Space Mono',monospace;font-size:0.55rem;color:var(--jade2);letter-spacing:2px;text-transform:uppercase;margin-bottom:8px;">Detected Condition</div>
+      <div class="cond-name" style="font-size:1.1rem;margin-bottom:8px;">${disease||'Medical Consultation Required'}</div>
+      <div class="cond-desc" style="font-size:0.82rem;line-height:1.75;">${explanation||''}</div>
+    </div>`;
+
+  // Specialist
+  const specIcons = {'Kuzhanthai Maruthuvam':'👶','Soolmagalir Maruthuvam':'🤰','Aruvai Thol Maruthuvam':'🔬','Varma Pura Sirappu Maruthuvam':'🧠','Pothu Maruthuvam':'🩺','Avasara Maruthuvam':'🚑','Nanju Noolum Maruthuva Neethi Noolum':'⚗️'};
+  const spec = mappedSpec || 'Pothu Maruthuvam';
+  document.getElementById('specRec').innerHTML = `
+    <div class="spec-icon">${specIcons[spec]||'🩺'}</div>
+    <div class="spec-info">
+      <h4>Recommended Specialist</h4>
+      <p>${spec}</p>
+      <div style="font-size:0.75rem;color:var(--text2);margin-top:3px;">${recommendedSpecialist||''}</div>
+    </div>`;
+
+  // Clear advice box (medicines removed)
+  document.getElementById('adviceBox').innerHTML = '';
+  document.getElementById('adviceBox').style.display = 'none';
+
+  // Doctors
+  const docs = recommendedDoctors || [];
+  document.getElementById('aiDoctorsTitle').textContent = `Recommended Doctors for ${spec}`;
+  document.getElementById('aiDoctorsSub').textContent = docs.length
+    ? `${docs.length} specialist${docs.length!==1?'s':''} matched — click to book directly`
+    : 'Showing general physicians';
+
+  document.getElementById('aiDocGrid').innerHTML = docs.length ? docs.map(d => {
+    const ini = d.name.replace('Dr.','').trim().split(' ').filter(Boolean).map(w=>w[0]).join('').slice(0,2).toUpperCase();
+    const avatarHtml = d.avatar
+      ? `<div class="doc-avatar"><img src="${d.avatar}" alt="${d.name}" onerror="this.parentElement.innerHTML='${ini}'"></div>`
+      : `<div class="doc-avatar">${ini}</div>`;
+    const gi = d.gender==='Female'?'👩‍⚕️':'👨‍⚕️';
+    return `<div class="ai-doc-card">
+      <div class="doc-header">${avatarHtml}<div class="doc-info"><h3 style="font-size:0.9rem;font-weight:600">${d.name}</h3><div class="reg">${gi} ${d.regNo}</div></div></div>
+      <div class="doc-spec">${d.spec}</div>
+      <div class="doc-qual" style="font-size:0.72rem;margin-bottom:8px">${d.qual}</div>
+      <div class="doc-meta">
+        <span class="doc-badge badge-online">✓ Available</span>
+        <span class="doc-badge badge-free">FREE</span>
+        ${d.exp>0?`<span class="doc-badge badge-exp">${d.exp}y exp</span>`:''}
+        ${d.onlineEnabled?`<span class="doc-badge badge-online">💻 Online</span>`:''}
+      </div>
+      ${d.schedule?`<div class="doc-schedule" style="margin-top:7px">🕐 ${d.schedule}</div>`:''}
+      <button class="btn-book-ai" onclick="bookFromAI('${d._id}','${d.name.replace(/'/g,"\\'")}')">
+        📅 Book with ${d.name.split(' ')[0]} ${d.name.split(' ')[1]||''}
+      </button>
+    </div>`;
+  }).join('') :
+    `<div style="color:var(--text2);padding:20px;grid-column:1/-1;text-align:center;">
+      No specialist found. <button class="btn btn-primary" style="margin-left:10px;" onclick="showSection('book')">Browse All Doctors →</button>
+    </div>`;
+
+  document.getElementById('aiResults').classList.add('show');
+  setTimeout(() => document.getElementById('aiResults').scrollIntoView({ behavior:'smooth', block:'start' }), 100);
+}
+
+function bookFromAI(doctorId, doctorName) {
+  state.selectedDoctor = doctorId;
+  showSection('book'); goStep(2); renderDoctors();
+  showNotif('info', `📅 ${doctorName} Selected`, 'Now choose your date and time slot.');
+}
+
+function resetAI() {
+  document.getElementById('aiResults').classList.remove('show');
+  document.getElementById('symptomInput').value = '';
+  document.querySelectorAll('.symp-chip').forEach(c => c.classList.remove('active'));
+  window.scrollTo({ top: document.getElementById('sec-ai').offsetTop - 80, behavior:'smooth' });
+}
+
+/* ══════════════════════════════════════════════════════════════
+   AI HEALTH ASSISTANT
+══════════════════════════════════════════════════════════════ */
+async function runHealthAssessment() {
+  const age    = document.getElementById('hAge').value.trim();
+  const gender = document.getElementById('hGender').value;
+  if (!age || !gender) {
+    showNotif('alert', 'Required', 'Please enter at least Age and Gender.');
+    return;
+  }
+
+  const btn = document.getElementById('healthBtn');
+  const btnText = document.getElementById('healthBtnText');
+  btn.classList.add('loading'); btn.disabled = true;
+  btnText.textContent = 'Analysing your health…';
+
+  const payload = {
+    age, gender,
+    bloodSugar:     document.getElementById('hBloodSugar').value  || 'Not provided',
+    bloodPressure:  document.getElementById('hBP').value          || 'Not provided',
+    bmi:            document.getElementById('hBMI').value         || 'Not provided',
+    heartRate:      document.getElementById('hHeartRate').value   || 'Not provided',
+    cholesterol:    document.getElementById('hCholesterol').value || 'Not provided',
+    haemoglobin:    document.getElementById('hHaemoglobin').value || 'Not provided',
+    sleepHours:     document.getElementById('hSleep').value       || 'Not provided',
+    exerciseDays:   document.getElementById('hExercise').value    || 'Not provided',
+    smoking:        document.getElementById('hSmoking').value     || 'Not provided',
+    alcohol:        document.getElementById('hAlcohol').value     || 'Not provided',
+    knownConditions: document.getElementById('hConditions').value || 'None',
+    currentSymptoms: document.getElementById('hSymptoms').value  || 'None',
+  };
+
+  try {
+    const res  = await fetch(`${API}/ai/health-assessment`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Assessment failed');
+    renderHealthResults(data);
+    showNotif('success', '❤️ Assessment Complete', `Your health score: ${data.overall_score}/100`);
+  } catch (err) {
+    showNotif('alert', 'Error', err.message);
+  } finally {
+    btn.classList.remove('loading'); btn.disabled = false;
+    btnText.textContent = 'Assess My Health';
+  }
+}
+
+function renderHealthResults(data) {
+  const score  = Math.round(data.overall_score || 0);
+  const status = data.status || 'Fair';
+
+  // Score ring animation
+  const circumference = 2 * Math.PI * 68; // 427
+  const offset = circumference - (score / 100) * circumference;
+  const ringColors = { Excellent:'#10b981', Good:'#00A896', Fair:'#F59E0B', Poor:'#E8445A', Critical:'#ff4444' };
+  const ringFill = document.getElementById('scoreRingFill');
+  ringFill.style.stroke = ringColors[status] || '#00A896';
+  ringFill.style.strokeDashoffset = circumference; // start from 0
+  setTimeout(() => { ringFill.style.strokeDashoffset = offset; }, 80);
+
+  // Animate score number
+  const scoreEl = document.getElementById('scoreNum');
+  scoreEl.style.color = ringColors[status] || '#00A896';
+  let cur = 0;
+  const step = Math.max(1, Math.ceil(score / 50));
+  const t = setInterval(() => { cur = Math.min(cur + step, score); scoreEl.textContent = cur; if (cur >= score) clearInterval(t); }, 30);
+
+  // Status badge
+  const statusEl = document.getElementById('scoreStatus');
+  statusEl.textContent = status;
+  statusEl.className = `score-status status-${status}`;
+
+  // Summary
+  document.getElementById('healthSummaryTitle').textContent = `Your Health Score: ${score}/100`;
+  document.getElementById('healthSummaryText').textContent  = data.summary || '';
+
+  // Sub-scores
+  const subLabels = { cardiovascular:'❤️ Cardiovascular', metabolic:'🩸 Metabolic', lifestyle:'🌿 Lifestyle', nutrition:'🥗 Nutrition', mental_wellness:'🧠 Mental Wellness', physical_fitness:'💪 Physical Fitness' };
+  const subColors = { cardiovascular:'#E8445A', metabolic:'#F59E0B', lifestyle:'#10b981', nutrition:'#00A896', mental_wellness:'#a5b4fc', physical_fitness:'#F0C96A' };
+  const sub = data.sub_scores || {};
+
+  document.getElementById('subScoresGrid').innerHTML = Object.entries(subLabels).map(([key, label]) => {
+    const s = sub[key] || { score: 0, insight: '' };
+    const sc = Math.round(s.score || 0);
+    return `<div class="sub-score-card">
+      <div class="sub-score-header">
+        <div class="sub-score-name">${label}</div>
+        <div class="sub-score-val" style="color:${subColors[key]}">${sc}</div>
+      </div>
+      <div class="sub-score-bar-track">
+        <div class="sub-score-bar-fill" style="width:0%;background:${subColors[key]}" data-width="${sc}%"></div>
+      </div>
+      <div class="sub-score-insight">${s.insight||''}</div>
+    </div>`;
+  }).join('');
+
+  // Animate bars after render
+  setTimeout(() => {
+    document.querySelectorAll('.sub-score-bar-fill').forEach(bar => {
+      bar.style.width = bar.dataset.width;
+    });
+  }, 120);
+
+  // Risk factors
+  const risks = data.risk_factors || [];
+  document.getElementById('riskList').innerHTML = risks.length
+    ? risks.map(r => `<div class="risk-item"><div class="risk-dot"></div><span>${r}</span></div>`).join('')
+    : '<div class="risk-item"><div class="risk-dot" style="background:var(--emerald)"></div><span>No major risk factors identified</span></div>';
+
+  // Tips
+  const tips = data.improvement_tips || [];
+  document.getElementById('tipsList').innerHTML = tips.length
+    ? tips.map(t => `<div class="risk-item"><div class="tip-dot"></div><span>${t}</span></div>`).join('')
+    : '<div class="risk-item"><div class="tip-dot"></div><span>Maintain your current healthy habits</span></div>';
+
+  document.getElementById('healthResults').classList.add('show');
+  setTimeout(() => document.getElementById('healthResults').scrollIntoView({ behavior:'smooth', block:'start' }), 100);
+}
+
+function resetHealth() {
+  document.getElementById('healthResults').classList.remove('show');
+  ['hAge','hGender','hBloodSugar','hBP','hBMI','hHeartRate','hCholesterol','hHaemoglobin','hSleep','hExercise','hSmoking','hAlcohol','hConditions','hSymptoms'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = '';
+  });
+  window.scrollTo({ top: document.getElementById('sec-health').offsetTop - 80, behavior:'smooth' });
+}
 
 </script>
 

@@ -8,6 +8,9 @@ const { Doctor, Patient, Booking, Notification, Admin } = require('../models');
 const { adminOnly, authMiddleware } = require('../middleware/auth');
 const { sendOTPEmail, sendBookingConfirmation, sendCancellationEmail, sendBroadcastEmail } = require('../utils/email');
 
+// ── AI Symptom Analyser (Groq / llama-3.1-8b-instant) ─────────
+router.use('/ai', require('./symptomAI'));
+
 // ──────────────────────────────────────────────────────────────
 //  ADMIN AUTH
 // ──────────────────────────────────────────────────────────────
