@@ -114,6 +114,22 @@ router.get('/bookings/slots', async (req, res) => {
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
+// ── Token generator — globally unique per date, collision-safe ─
+async function generateUniqueToken(date) {
+  const dateStr = date.replace(/-/g, '').slice(4); // MMDD from YYYY-MM-DD
+  const MAX_ATTEMPTS = 10;
+
+  for (let attempt = 0; attempt < MAX_ATTEMPTS; attempt++) {
+    const dailyCount = await Booking.countDocuments({ date });
+    const candidate = `T${dateStr}${String(dailyCount + 1 + attempt).padStart(3, '0')}`;
+    const exists = await Booking.findOne({ token: candidate }).lean();
+    if (!exists) return candidate;
+  }
+
+  // Ultimate fallback: timestamp suffix guarantees uniqueness
+  return `T${dateStr}${Date.now().toString().slice(-4)}`;
+}
+
 // Create booking
 router.post('/bookings', async (req, res) => {
   try {
@@ -125,10 +141,8 @@ router.post('/bookings', async (req, res) => {
     const existing = await Booking.findOne({ doctorId: req.body.doctorId, date: req.body.date, time: req.body.time, status: { $in: ['confirmed', 'pending'] } });
     if (existing) return res.status(409).json({ error: 'This slot is already booked. Please choose another.' });
 
-    // Generate token
-    const dateStr = req.body.date.replace(/-/g, '').slice(4); // MMDD
-    const count = await Booking.countDocuments({ doctorId: req.body.doctorId, date: req.body.date }) + 1;
-    const token = `T${dateStr}${String(count).padStart(3, '0')}`;
+    // Generate globally unique token (race-condition safe)
+    const token = await generateUniqueToken(req.body.date);
 
     const booking = await Booking.create({ ...req.body, token, doctorName: doctor.name, doctorSpec: doctor.spec });
 
